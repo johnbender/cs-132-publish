@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-04-01 Fri 16:03 -->
+<!-- 2016-04-01 Fri 16:13 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="viewport" content="width=device-width, initial-scale=1" />
 <title>First, Follow, etc</title>
@@ -246,23 +246,23 @@ D -&gt; d
 <ul class="org-ul">
 <li>everything that might follow
 <ul class="org-ul">
-<li><code>Follow(B) = Follow(B) ∪ First(C)</code></li>
+<li><code>Follow(B) = First(C)</code></li>
 <li><p>
-<code>Follow(B) = Follow(B) ∪ First(C) ∪ First(D)</code> 
+<code>Follow(B) = First(C) ∪ First(D)</code> 
 </p>
 
 <p>
 <b>through</b> nullable non-terminals
 </p></li>
 <li><p>
-<code>Follow(B) = Follow(B) ∪ First(C) ∪ First(D) ∪ Follow(A)</code> 
+<code>Follow(B) = First(C) ∪ First(D) ∪ Follow(A)</code> 
 </p>
 
 <p>
-<code>B</code> appears at the end of a production in <code>A</code> so we must consule
+<code>B</code> appears at the end of a production in <code>A</code> so we must consult
 <code>Follow(A)</code> (empty)
 </p></li>
-<li><code>Follow(B) = Follow(B) ∪ First(C) ∪ First(D) = {c, d}</code></li>
+<li><code>Follow(B) = First(C) ∪ First(D) ∪ ∅ = {c, d}</code></li>
 </ul></li>
 <li>whole production is nullable
 <ul class="org-ul">
@@ -272,7 +272,8 @@ D -&gt; d
 
 <p>
 Both of the productions in which <code>C</code> appears have nullable non-terminals
-following <code>C</code> so we must consule <code>Follow(A)</code> (empty)
+following <code>C</code> without any non-terminals that follow so we must consult
+<code>Follow(A)</code> (empty)
 </p></li>
 </ul></li>
 </ul></li>
@@ -606,7 +607,7 @@ Concat does not require whitespace, but its certainly supports it.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: John Bender</p>
-<p class="date">Created: 2016-04-01 Fri 16:03</p>
+<p class="date">Created: 2016-04-01 Fri 16:13</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

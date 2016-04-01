@@ -67,20 +67,21 @@ D -> d
 
 - Rules
   - everything that might follow
-    - ~Follow(B) = Follow(B) ∪ First(C)~ 
-    - ~Follow(B) = Follow(B) ∪ First(C) ∪ First(D)~ 
+    - ~Follow(B) = First(C)~ 
+    - ~Follow(B) = First(C) ∪ First(D)~ 
 
       *through* nullable non-terminals
-    - ~Follow(B) = Follow(B) ∪ First(C) ∪ First(D) ∪ Follow(A)~ 
+    - ~Follow(B) = First(C) ∪ First(D) ∪ Follow(A)~ 
 
-      ~B~ appears at the end of a production in ~A~ so we must consule
+      ~B~ appears at the end of a production in ~A~ so we must consult
       ~Follow(A)~ (empty)
-    - ~Follow(B) = Follow(B) ∪ First(C) ∪ First(D) = {c, d}~ 
+    - ~Follow(B) = First(C) ∪ First(D) ∪ ∅ = {c, d}~ 
   - whole production is nullable
     - ~Follow(C) = First(B) ∪ First(D) ∪ Follow(A) = {b}~ 
 
       Both of the productions in which ~C~ appears have nullable non-terminals
-      following ~C~ so we must consule ~Follow(A)~ (empty)
+      following ~C~ without any non-terminals that follow so we must consult
+      ~Follow(A)~ (empty)
 
 * LL(1)
 - for each set of productions ~A -> α | β | ...~
