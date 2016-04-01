@@ -1,0 +1,98 @@
+body {
+  padding: 20px;
+}
+
+#content {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+#content, #right-content {
+  width: 650px;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+#postamble {
+  display: none;
+}
+
+td, th.left {
+  padding: 5px;
+  text-align: left;
+}
+
+h1 {
+  font-size: 3em;
+}
+
+h2 {
+  font-size: 2.75em;
+  margin-top: 1em;
+}
+
+ul {
+  padding-left: 1.5em;
+  margin-bottom: 10px;
+}
+
+li p {
+  margin-top: 0.5em;
+}
+
+table {
+  margin: 1em 0 1.5em 0;
+}
+
+code {
+  font-size: 14px;
+}
+
+pre, pre.src {
+  font-size: 12px;
+  margin-left: 0;
+  box-shadow: 0 0 0 black;
+  padding: 5px;
+  overflow-y: scroll;
+  padding: 1em 0 1em 1em;
+
+}
+
+#text-2 pre {
+  margin-top: 8px;
+}
+
+.section-number-2,
+.section-number-3,
+.section-number-4 {
+  display: none;
+}
+
+.figure p {
+  text-align: left;
+}
+
+ol {
+  list-style-type: lower-alpha;
+}
+
+ol > li > img {
+  margin: 0 1em 2em 1em;;
+}
+
+pre.src:hover:before {
+  top: 10px;
+  right: 10px;
+}
+
+table td, table th {
+  border: 1px solid black
+}
+
+img {
+  max-width: 100%;
+}
+
+.figure {
+  padding: 0px;
+}

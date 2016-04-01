@@ -1,0 +1,254 @@
+#+HTML_HEAD: <link href="./assets/bootstrap.min.css" rel="stylesheet">
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+#+TITLE: First, Follow, etc
+#+OPTIONS: toc:nil
+
+* first
+
+Intuition: all characters that can be consumed to satisfy some
+non-terminal.
+
+#+begin_example
+A -> a | BCD | ε
+B -> b | ε
+C -> c | ε
+D -> d | ε
+#+end_example
+
+- Rules
+  - ~First(a) = {a}~
+  - ~ε ∈ First(A)~ where exists ~A -> ε~
+  - where exists ~A -> BCD~
+    - ~First(B) - {ε} ⊆ First(A)~
+    - ~First(C) - {ε} ⊆ First(A)~ if ~B =>* ε~
+    - ~First(D) - {ε} ⊆ First(A)~ if ~B =>* ε~ and ~C =>* ε~
+    - ~ε ∈ First(A)~ because ~ε ∈ First(B) ∩ First(C) ∩ First(D)~
+
+#+begin_example
+A -> Ba 
+B -> b
+#+end_example
+
+- What is ~First(A)~?
+  
+  ~First(B) => First(b) => {b}~
+
+#+begin_example
+A -> BCa 
+B -> b | ε
+C -> c
+#+end_example
+
+- What is ~First(A)~?
+  
+  ~First(B) ∪ First(C) (why?) => First(b) ∪ First(c) => {b, c}~
+
+#+begin_example
+A -> BCa 
+B -> b | ε
+C -> c | ε
+#+end_example
+
+- What is ~First(A)~?
+  
+  ~First(B) ∪ First(C) ∪ First(a) (why?) => First(b) ∪ First(c) ∪ First(a) => {a, b, c}~
+
+* follow
+
+Intuition: find the places a non-terminal appears, check the
+terminals that might appear *after* it.
+
+#+begin_example
+A -> a | BCD | CB
+B -> b | ε
+C -> c | ε
+D -> d
+#+end_example
+
+- Rules
+  - everything that might follow
+    - ~Follow(B) = Follow(B) ∪ First(C)~ 
+    - ~Follow(B) = Follow(B) ∪ First(C) ∪ First(D)~ 
+
+      *through* nullable non-terminals
+    - ~Follow(B) = Follow(B) ∪ First(C) ∪ First(D) ∪ Follow(A)~ 
+
+      ~B~ appears at the end of a production in ~A~ so we must consule
+      ~Follow(A)~ (empty)
+    - ~Follow(B) = Follow(B) ∪ First(C) ∪ First(D) = {c, d}~ 
+  - whole production is nullable
+    - ~Follow(C) = First(B) ∪ First(D) ∪ Follow(A) = {b}~ 
+
+      Both of the productions in which ~C~ appears have nullable non-terminals
+      following ~C~ so we must consule ~Follow(A)~ (empty)
+
+* LL(1)
+- for each set of productions ~A -> α | β | ...~
+  - first sets for ~α~, ~β~, ... are pairwise disjoint
+  - if any ~α~, ~β~, ... are nullable, follow must
+    be pairwise disjoint with the others
+
+* left-recursive grammars
+
+#+begin_example
+A -> Aa | c | b
+#+end_example
+
+- Why is left recursion ruled out by LL(1)?
+  - What is ~First(Aa)~? 
+
+    ~First(c) ∪ First(b) ∪ ... = {c, b}~ 
+
+  - What is ~First(b)~? 
+
+    ~First(b) = {b}~ 
+    
+- Practically speaking why does this matter?
+
+  - Can we write a recursive descent parser for this grammar?
+
+- What strings does this grammar recognize?
+
+  - b, ba, baa, ...  
+  - c, ca, caa, ...
+
+- Informally, given a character from those string will we know what to do?
+ 
+  ie, can we write a recursive descent parser for these strings?
+
+- How can we fix the grammar?
+  - left factor
+    #+begin_example
+    A  -> cA' | bA'
+    A' -> aA' | ε
+    #+end_example
+    
+* slide example: "A grammer that is not LL(1)"
+
+* lexer
+- use regular expressions to create an array of tokens
+- example:
+
+#+begin_src javascript
+"$1+++2".match(/(\$)|(\d)|(\+\+)|(\+)/g)
+
+// => ["$", "1", "++", "+", "2"]
+#+end_src
+
+- What is important about the sequence of tokens above wrt the assignment?
+  - greedy consumption of ~+~ 
+
+* parser 
+- work through those tokens to produce some output
+- assignment: output stdout
+- normally, AST
+- trivial example
+
+  #+begin_example
+  A -> aB | c
+  B -> b
+  #+end_example
+- one solution, assuming start is ~A~
+  
+  #+begin_src javascript
+  class Parser {
+    constructor(tokens) {
+      this.tokens = tokens;
+      this.tokenIndex = 0;
+    }
+
+    get currentToken(){
+      return this.tokens[this.tokenIndex];
+    }
+
+    eat(token){
+      if( this.currentToken === token ){
+        this.tokenIndex++;
+      } else {
+        throw "NOPE";
+      }
+    }
+
+    handleA(){
+      if( this.currentToken === "a" ){
+        this.eat("a");
+        console.log("a");
+        this.handleB();
+        console.log("B");
+      } else {
+        this.eat("c");
+        console.log("c");
+      }
+    }
+
+    handleB(){
+      this.eat("b");
+      console.log("b");
+    }
+
+    start(){ 
+      this.handleA();
+      console.log("A");
+    }
+  }
+  #+end_src
+- With postfix parse tree logging, error handling, and EOF check
+  #+include: assets/parser.js src javascript
+  
+* homework examples 
+
+#+begin_src awk
+$1 +
+(1 - ++$2) $# (a confusing comment)
+3
+# => ((1 $) (1 ((2 $) ++_) -) +) (3 $) _
+#+end_src
+
+#+begin_src awk
+$$1++++$2
+# => ((((1 $) $) _++) _++) (2 $) _
+#+end_src
+
+* piazza
+#+begin_quote
+In one of the lines on the HW1 grammar we have
+
+binop::=+ | - |
+
+Does this mean that binop can go to the empty symbol? This
+is rather confusing as there is nothing on the right of
+the second vertical pipe, not even an epsilon.
+#+end_quote
+
+- Thoughts?
+- My answer
+  From the assignment:
+
+  #+begin_quote
+  ... and string concatenation (indicated by an empty binop) ...
+
+  ... Except when distinguishing ++ from + +, and -- from - -, the scanner
+  should ignore and discard tabs, spaces, newlines, and Awk comments.
+  #+end_quote
+
+  From the GNU Awk Manual:
+
+  #+begin_quote
+  There is only one string operation: concatenation. It does not have a specific
+  operator to represent it. Instead, concatenation is performed by writing
+  expressions next to one another, with no operator.
+  #+end_quote
+
+  An example:
+
+  #+begin_example
+  $ awk 'BEGIN { print 1" "2 }'
+  1 2
+  $ awk 'BEGIN { print 1 " " 2 }'
+  1 2
+  #+end_example
+
+  Concat does not require whitespace, but its certainly supports it.
+
+
+

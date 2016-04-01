@@ -1,0 +1,613 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2016-04-01 Fri 16:03 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="viewport" content="width=device-width, initial-scale=1" />
+<title>First, Follow, etc</title>
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="John Bender" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<link href="./assets/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="./assets/style.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">First, Follow, etc</h1>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1"><span class="section-number-2">1</span> first</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Intuition: all characters that can be consumed to satisfy some
+non-terminal.
+</p>
+
+<pre class="example">
+A -&gt; a | BCD | ε
+B -&gt; b | ε
+C -&gt; c | ε
+D -&gt; d | ε
+</pre>
+
+<ul class="org-ul">
+<li>Rules
+<ul class="org-ul">
+<li><code>First(a) = {a}</code></li>
+<li><code>ε ∈ First(A)</code> where exists <code>A -&gt; ε</code></li>
+<li>where exists <code>A -&gt; BCD</code>
+<ul class="org-ul">
+<li><code>First(B) - {ε} ⊆ First(A)</code></li>
+<li><code>First(C) - {ε} ⊆ First(A)</code> if <code>B =&gt;* ε</code></li>
+<li><code>First(D) - {ε} ⊆ First(A)</code> if <code>B =&gt;* ε</code> and <code>C =&gt;* ε</code></li>
+<li><code>ε ∈ First(A)</code> because <code>ε ∈ First(B) ∩ First(C) ∩ First(D)</code></li>
+</ul></li>
+</ul></li>
+</ul>
+
+<pre class="example">
+A -&gt; Ba 
+B -&gt; b
+</pre>
+
+<ul class="org-ul">
+<li><p>
+What is <code>First(A)</code>?
+</p>
+
+<p>
+<code>First(B) =&gt; First(b) =&gt; {b}</code>
+</p></li>
+</ul>
+
+<pre class="example">
+A -&gt; BCa 
+B -&gt; b | ε
+C -&gt; c
+</pre>
+
+<ul class="org-ul">
+<li><p>
+What is <code>First(A)</code>?
+</p>
+
+<p>
+<code>First(B) ∪ First(C) (why?) =&gt; First(b) ∪ First(c) =&gt; {b, c}</code>
+</p></li>
+</ul>
+
+<pre class="example">
+A -&gt; BCa 
+B -&gt; b | ε
+C -&gt; c | ε
+</pre>
+
+<ul class="org-ul">
+<li><p>
+What is <code>First(A)</code>?
+</p>
+
+<p>
+<code>First(B) ∪ First(C) ∪ First(a) (why?) =&gt; First(b) ∪ First(c) ∪ First(a) =&gt; {a, b, c}</code>
+</p></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-2">
+<h2 id="orgheadline2"><span class="section-number-2">2</span> follow</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Intuition: find the places a non-terminal appears, check the
+terminals that might appear <b>after</b> it.
+</p>
+
+<pre class="example">
+A -&gt; a | BCD | CB
+B -&gt; b | ε
+C -&gt; c | ε
+D -&gt; d
+</pre>
+
+<ul class="org-ul">
+<li>Rules
+<ul class="org-ul">
+<li>everything that might follow
+<ul class="org-ul">
+<li><code>Follow(B) = Follow(B) ∪ First(C)</code></li>
+<li><p>
+<code>Follow(B) = Follow(B) ∪ First(C) ∪ First(D)</code> 
+</p>
+
+<p>
+<b>through</b> nullable non-terminals
+</p></li>
+<li><p>
+<code>Follow(B) = Follow(B) ∪ First(C) ∪ First(D) ∪ Follow(A)</code> 
+</p>
+
+<p>
+<code>B</code> appears at the end of a production in <code>A</code> so we must consule
+<code>Follow(A)</code> (empty)
+</p></li>
+<li><code>Follow(B) = Follow(B) ∪ First(C) ∪ First(D) = {c, d}</code></li>
+</ul></li>
+<li>whole production is nullable
+<ul class="org-ul">
+<li><p>
+<code>Follow(C) = First(B) ∪ First(D) ∪ Follow(A) = {b}</code> 
+</p>
+
+<p>
+Both of the productions in which <code>C</code> appears have nullable non-terminals
+following <code>C</code> so we must consule <code>Follow(A)</code> (empty)
+</p></li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-2">
+<h2 id="orgheadline3"><span class="section-number-2">3</span> LL(1)</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li>for each set of productions <code>A -&gt; α | β | ...</code>
+<ul class="org-ul">
+<li>first sets for <code>α</code>, <code>β</code>, &#x2026; are pairwise disjoint</li>
+<li>if any <code>α</code>, <code>β</code>, &#x2026; are nullable, follow must
+be pairwise disjoint with the others</li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-2">
+<h2 id="orgheadline4"><span class="section-number-2">4</span> left-recursive grammars</h2>
+<div class="outline-text-2" id="text-4">
+<pre class="example">
+A -&gt; Aa | c | b
+</pre>
+
+<ul class="org-ul">
+<li>Why is left recursion ruled out by LL(1)?
+<ul class="org-ul">
+<li><p>
+What is <code>First(Aa)</code>? 
+</p>
+
+<p>
+<code>First(c) ∪ First(b) ∪ ... = {c, b}</code> 
+</p></li>
+
+<li><p>
+What is <code>First(b)</code>? 
+</p>
+
+<p>
+<code>First(b) = {b}</code> 
+</p></li>
+</ul></li>
+
+<li>Practically speaking why does this matter?
+
+<ul class="org-ul">
+<li>Can we write a recursive descent parser for this grammar?</li>
+</ul></li>
+
+<li>What strings does this grammar recognize?
+
+<ul class="org-ul">
+<li>b, ba, baa, &#x2026;</li>
+<li>c, ca, caa, &#x2026;</li>
+</ul></li>
+
+<li><p>
+Informally, given a character from those string will we know what to do?
+</p>
+
+<p>
+ie, can we write a recursive descent parser for these strings?
+</p></li>
+
+<li>How can we fix the grammar?
+<ul class="org-ul">
+<li><p>
+left factor
+</p>
+<pre class="example">
+A  -&gt; cA' | bA'
+A' -&gt; aA' | ε
+</pre></li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-2">
+<h2 id="orgheadline5"><span class="section-number-2">5</span> slide example: "A grammer that is not LL(1)"</h2>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-2">
+<h2 id="orgheadline6"><span class="section-number-2">6</span> lexer</h2>
+<div class="outline-text-2" id="text-6">
+<ul class="org-ul">
+<li>use regular expressions to create an array of tokens</li>
+<li>example:</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-javascript"><span style="color: #2aa198;">"$1+++2"</span>.match<span style="color: #268bd2;">(</span><span style="color: #2aa198;">/(\$)|(\d)|(\+\+)|(\+)/</span>g<span style="color: #268bd2;">)</span>
+
+<span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">=&gt; ["$", "1", "++", "+", "2"]</span>
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>What is important about the sequence of tokens above wrt the assignment?
+<ul class="org-ul">
+<li>greedy consumption of <code>+</code></li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-2">
+<h2 id="orgheadline7"><span class="section-number-2">7</span> parser</h2>
+<div class="outline-text-2" id="text-7">
+<ul class="org-ul">
+<li>work through those tokens to produce some output</li>
+<li>assignment: output stdout</li>
+<li>normally, AST</li>
+<li><p>
+trivial example
+</p>
+
+<pre class="example">
+A -&gt; aB | c
+B -&gt; b
+</pre></li>
+<li><p>
+one solution, assuming start is <code>A</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-javascript"><span style="color: #268bd2; font-weight: bold;">class</span> Parser <span style="color: #268bd2;">{</span>
+  constructor<span style="color: #8700af;">(</span>tokens<span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #8700af;">this</span>.tokens = tokens;
+    <span style="color: #8700af;">this</span>.tokenIndex = <span style="color: #8700af;">0</span>;
+  <span style="color: #8700af;">}</span>
+
+  get currentToken<span style="color: #8700af;">(){</span>
+    <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #8700af;">this</span>.tokens<span style="color: #2aa198;">[</span><span style="color: #8700af;">this</span>.tokenIndex<span style="color: #2aa198;">]</span>;
+  <span style="color: #8700af;">}</span>
+
+  eat<span style="color: #8700af;">(</span>token<span style="color: #8700af;">){</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span><span style="color: #2aa198;">(</span> <span style="color: #8700af;">this</span>.currentToken === token <span style="color: #2aa198;">){</span>
+      <span style="color: #8700af;">this</span>.tokenIndex++;
+    <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">else</span> <span style="color: #2aa198;">{</span>
+      <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #2aa198;">"NOPE"</span>;
+    <span style="color: #2aa198;">}</span>
+  <span style="color: #8700af;">}</span>
+
+  handleA<span style="color: #8700af;">(){</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span><span style="color: #2aa198;">(</span> <span style="color: #8700af;">this</span>.currentToken === <span style="color: #2aa198;">"a"</span> <span style="color: #2aa198;">){</span>
+      <span style="color: #8700af;">this</span>.eat<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"a"</span><span style="color: #5faf00;">)</span>;
+      console.log<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"a"</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #8700af;">this</span>.handleB<span style="color: #5faf00;">()</span>;
+      console.log<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"B"</span><span style="color: #5faf00;">)</span>;
+    <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">else</span> <span style="color: #2aa198;">{</span>
+      <span style="color: #8700af;">this</span>.eat<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"c"</span><span style="color: #5faf00;">)</span>;
+      console.log<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"c"</span><span style="color: #5faf00;">)</span>;
+    <span style="color: #2aa198;">}</span>
+  <span style="color: #8700af;">}</span>
+
+  handleB<span style="color: #8700af;">(){</span>
+    <span style="color: #8700af;">this</span>.eat<span style="color: #2aa198;">(</span><span style="color: #2aa198;">"b"</span><span style="color: #2aa198;">)</span>;
+    console.log<span style="color: #2aa198;">(</span><span style="color: #2aa198;">"b"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  start<span style="color: #8700af;">(){</span> 
+    <span style="color: #8700af;">this</span>.handleA<span style="color: #2aa198;">()</span>;
+    console.log<span style="color: #2aa198;">(</span><span style="color: #2aa198;">"A"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
+</pre>
+</div></li>
+<li><p>
+With postfix parse tree logging, error handling, and EOF check
+</p>
+<div class="org-src-container">
+
+<pre class="src src-javascript"><span style="color: #268bd2; font-weight: bold;">class</span> Parser <span style="color: #268bd2;">{</span>
+  constructor<span style="color: #8700af;">(</span>tokens<span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #8700af;">this</span>.tokens = tokens;
+    <span style="color: #8700af;">this</span>.tokenIndex = <span style="color: #8700af;">0</span>;
+  <span style="color: #8700af;">}</span>
+
+  get currentToken<span style="color: #8700af;">(){</span>
+    <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #8700af;">this</span>.tokens<span style="color: #2aa198;">[</span><span style="color: #8700af;">this</span>.tokenIndex<span style="color: #2aa198;">]</span>;
+  <span style="color: #8700af;">}</span>
+
+  eat<span style="color: #8700af;">(</span>token<span style="color: #8700af;">){</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span><span style="color: #2aa198;">(</span> <span style="color: #8700af;">this</span>.currentToken === token <span style="color: #2aa198;">){</span>
+      console.log<span style="color: #5faf00;">(</span><span style="color: #8700af;">this</span>.currentToken<span style="color: #5faf00;">)</span>;
+      <span style="color: #8700af;">this</span>.tokenIndex++;
+    <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">else</span> <span style="color: #2aa198;">{</span>
+      <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #2aa198;">"mismatched token: "</span> + token + <span style="color: #2aa198;">" =/= "</span> + <span style="color: #8700af;">this</span>.currentToken;
+    <span style="color: #2aa198;">}</span>
+  <span style="color: #8700af;">}</span>
+
+  start<span style="color: #8700af;">(){</span>
+    <span style="color: #268bd2; font-weight: bold;">try</span> <span style="color: #2aa198;">{</span>
+      <span style="color: #8700af;">this</span>.handleA<span style="color: #5faf00;">()</span>;
+
+      <span style="color: #268bd2; font-weight: bold;">if</span><span style="color: #5faf00;">(</span><span style="color: #8700af;">this</span>.tokenIndex &lt; <span style="color: #8700af;">this</span>.tokens.length<span style="color: #5faf00;">){</span>
+        <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #2aa198;">"leftover tokens"</span> ;
+      <span style="color: #5faf00;">}</span>
+    <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">catch</span> <span style="color: #2aa198;">(</span>e<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      console.log<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"error: "</span> + e<span style="color: #5faf00;">)</span>;
+    <span style="color: #2aa198;">}</span>
+  <span style="color: #8700af;">}</span>
+
+  handleA<span style="color: #8700af;">(){</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span><span style="color: #2aa198;">(</span> <span style="color: #8700af;">this</span>.currentToken === <span style="color: #2aa198;">"a"</span> <span style="color: #2aa198;">){</span>
+      <span style="color: #8700af;">this</span>.eat<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"a"</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #8700af;">this</span>.handleB<span style="color: #5faf00;">()</span>;
+    <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">else</span> <span style="color: #2aa198;">{</span>
+      <span style="color: #8700af;">this</span>.eat<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"c"</span><span style="color: #5faf00;">)</span>;
+    <span style="color: #2aa198;">}</span>
+
+    console.log<span style="color: #2aa198;">(</span><span style="color: #2aa198;">"A"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  handleB<span style="color: #8700af;">(){</span>
+    <span style="color: #8700af;">this</span>.eat<span style="color: #2aa198;">(</span><span style="color: #2aa198;">"b"</span><span style="color: #2aa198;">)</span>;
+
+    console.log<span style="color: #2aa198;">(</span><span style="color: #2aa198;">"B"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
+
+console.log<span style="color: #268bd2;">(</span><span style="color: #2aa198;">"parse: ab"</span><span style="color: #268bd2;">)</span>;
+<span style="color: #268bd2;">(</span><span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Parser</span><span style="color: #8700af;">(</span><span style="color: #2aa198;">[</span><span style="color: #2aa198;">"a"</span>, <span style="color: #2aa198;">"b"</span><span style="color: #2aa198;">]</span><span style="color: #8700af;">)</span><span style="color: #268bd2;">)</span>.start<span style="color: #268bd2;">()</span>;
+
+console.log<span style="color: #268bd2;">(</span><span style="color: #2aa198;">"parse: cb"</span><span style="color: #268bd2;">)</span>;
+<span style="color: #268bd2;">(</span><span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Parser</span><span style="color: #8700af;">(</span><span style="color: #2aa198;">[</span><span style="color: #2aa198;">"c"</span>, <span style="color: #2aa198;">"b"</span><span style="color: #2aa198;">]</span><span style="color: #8700af;">)</span><span style="color: #268bd2;">)</span>.start<span style="color: #268bd2;">()</span>;
+
+console.log<span style="color: #268bd2;">(</span><span style="color: #2aa198;">"parse: aa"</span><span style="color: #268bd2;">)</span>;
+<span style="color: #268bd2;">(</span><span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Parser</span><span style="color: #8700af;">(</span><span style="color: #2aa198;">[</span><span style="color: #2aa198;">"a"</span>, <span style="color: #2aa198;">"a"</span><span style="color: #2aa198;">]</span><span style="color: #8700af;">)</span><span style="color: #268bd2;">)</span>.start<span style="color: #268bd2;">()</span>;
+</pre>
+</div></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-2">
+<h2 id="orgheadline8"><span class="section-number-2">8</span> homework examples</h2>
+<div class="outline-text-2" id="text-8">
+<div class="org-src-container">
+
+<pre class="src src-awk">$1 +
+<span style="color: #268bd2;">(</span><span style="color: #8700af;">1</span> - ++$2<span style="color: #268bd2;">)</span> $<span style="color: #008787; background-color: #ffffff;"># </span><span style="color: #008787; background-color: #ffffff;">(a confusing comment)</span>
+<span style="color: #8700af;">3</span>
+<span style="color: #008787; background-color: #ffffff;"># </span><span style="color: #008787; background-color: #ffffff;">=&gt; ((1 $) (1 ((2 $) ++_) -) +) (3 $) _</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-awk">$$1++++$2
+<span style="color: #008787; background-color: #ffffff;"># </span><span style="color: #008787; background-color: #ffffff;">=&gt; ((((1 $) $) _++) _++) (2 $) _</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-2">
+<h2 id="orgheadline9"><span class="section-number-2">9</span> piazza</h2>
+<div class="outline-text-2" id="text-9">
+<blockquote>
+<p>
+In one of the lines on the HW1 grammar we have
+</p>
+
+<p>
+binop::=+ | - |
+</p>
+
+<p>
+Does this mean that binop can go to the empty symbol? This
+is rather confusing as there is nothing on the right of
+the second vertical pipe, not even an epsilon.
+</p>
+</blockquote>
+
+<ul class="org-ul">
+<li>Thoughts?</li>
+<li><p>
+My answer
+From the assignment:
+</p>
+
+<blockquote>
+<p>
+&#x2026; and string concatenation (indicated by an empty binop) &#x2026;
+</p>
+
+<p>
+&#x2026; Except when distinguishing ++ from + +, and &#x2013; from - -, the scanner
+should ignore and discard tabs, spaces, newlines, and Awk comments.
+</p>
+</blockquote>
+
+<p>
+From the GNU Awk Manual:
+</p>
+
+<blockquote>
+<p>
+There is only one string operation: concatenation. It does not have a specific
+operator to represent it. Instead, concatenation is performed by writing
+expressions next to one another, with no operator.
+</p>
+</blockquote>
+
+<p>
+An example:
+</p>
+
+<pre class="example">
+$ awk 'BEGIN { print 1" "2 }'
+1 2
+$ awk 'BEGIN { print 1 " " 2 }'
+1 2
+</pre>
+
+<p>
+Concat does not require whitespace, but its certainly supports it.
+</p></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: John Bender</p>
+<p class="date">Created: 2016-04-01 Fri 16:03</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
