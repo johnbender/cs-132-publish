@@ -4,24 +4,23 @@
 #+OPTIONS: toc:nil
 
 * fn a small functional language
-* abstraction
+- abstraction
 
-#+begin_example
-fn(x){ ... }
-#+end_example
+  #+begin_example
+  fn(x){ x }
+  #+end_example
 
-* application
+- application
 
-#+begin_example
-fn(1)
-bar(fn(x){ ... }(1))
-#+end_example
+  #+begin_example
+  fn(x){ x }(1) # => 1
+  #+end_example
 
 * boolean
 ** true
 
 #+begin_example
-fn(a){ fn(b){a} }
+fn(a){ fn(b){a} } 
 #+end_example
 
 ** false
@@ -48,43 +47,64 @@ fn(t){  # if it's true
 }
 #+end_example
 
-* javacc grammar
-- domain specific language for generating Java parsers
+* javacc
+- install
+  Use ~lnxsrv04~
 
-- left recursive grammar for fn
+- grammar
+  - domain specific language for generating Java parsers
 
-  #+begin_example
-  expr := abs | app | var | n
-  app  := expr '(' expr ')'
-  abs  := fn '(' id ')' '{' expr '}'
-  var  := [a-z]([a-z0-9])*
-  n    := [1-9]([0-9])*
-  #+end_example
+  - left recursive grammar for fn
 
-- javacc definition 
-  #+include: ../../fn/fn-lr.jj 
+    #+begin_example
+    expr := abs | app | var | n
+    app  := expr '(' expr ')'
+    abs  := fn '(' id ')' '{' expr '}'
+    var  := [a-z]([a-z0-9])*
+    n    := [1-9]([0-9])*
+    #+end_example
 
-- javacc semantic actions
-  #+include: ../../fn/fn-semantic.jj 
+  - javacc definition 
+    #+include: ../../fn/fn-lr.jj 
 
-  - javacc output
-    #+include: ../../fn/parser/Fn-simple.java src java
+  - javacc semantic actions
+    #+include: ../../fn/fn-semantic.jj 
 
-- left factored grammar for fn
+    - javacc output
+      #+include: ../../fn/parser/Fn-simple.java src java
 
-  #+begin_example
-  expr := abs rapp | var rapp | n rapp
-  rapp := '(' expr ')' rapp | e'
-  abs  := fn '(' id ')' '{' expr '}'
-  var  := [a-z]([a-z0-9])*
-  n    := [1-9]([0-9])*
-  #+end_example
+  - left factored grammar for fn
 
-* javacc install
+    #+begin_example
+    expr := abs rapp | var rapp | n rapp
+    rapp := '(' expr ')' rapp | e'
+    abs  := fn '(' id ')' '{' expr '}'
+    var  := [a-z]([a-z0-9])*
+    n    := [1-9]([0-9])*
+    #+end_example
 
-Use ~lnxsrv04~
+* type systems
 
-* with types
+- What are type systems good for? 
+  - What types of behavior do they prevent?
+    - e.g. ~1+"foo"~ 
+    
+- What does it mean for a type system to be sound?
+
+- What does it mean for a type system to be complete?
+
+- Question from CCLE
+
+  #+begin_quote
+  In Java, in some cases, a program will fail to compile due to a variable not
+  being initialized.
+ 
+  Is this something that can be done with a typechecker, using the same kind of
+  rules discussed in class, or does this require more analysis than possible
+  with a typechecker?
+  #+end_quote
+
+* fn with types
 
 - grammar 
 
@@ -132,16 +152,18 @@ Use ~lnxsrv04~
   - What's the type?
     ~int~ 
 
-* Type rules
+* type rules
+
+Rules of inference
 
 #+begin_example
-T(x) = t
+T(id) = t
 --------------- var
-T |- x : t
+T |- id : t
 
-T, x : t1 |- e : t2 
+T, id : t1 |- e : t2 
 ----------------------------- abs
-T |- fn(t1 x) { e } : t1 -> t2         
+T |- fn(t1 id) { e } : t1 -> t2         
 
 T |- e1 : t1 -> t2     T |- e2 : t1
 ----------------------------------- app
@@ -150,6 +172,31 @@ T |- e1(e2) : t2
 ------- int
 N : int
 #+end_example
+
+- What is ~T~?
+  - A mapping from variable identifiers to types
+
+- ~int~
+  - no assumptions, axiom
+
+- ~var~
+  - What is ~T(x)~?
+    - A lookup in the mapping 
+
+- ~abs~
+  - What does ~T, id : t1~ mean?
+  - Why doing that here?
+  - Why do we need a mapping to determine the type of some expression?
+
+- ~app~
+  - Why is the type ~t2~?
+
+- Induction!
+  - Why do we care?
+    - nice clean recipe for type checking
+
+- How do we know that this type system is sound?
+  - proofs, requires semantics
 
 * JTB
 
@@ -184,6 +231,7 @@ N : int
     - Why do we care?
       - The visitor super class can be parameterized over an argument and
         return type for each ~accept/visit~ method.
+        - recall the type rules!
       - Normal visitor relies entirely on side effects ~void~ return type and no
         arguments.
       - In our case pass down a type environment, return expression/statement type
@@ -205,26 +253,6 @@ N : int
 
       ...
       #+end_src
-
-* Type systems
-
-- What are type systems good for? 
-  - What types of behavior do they prevent?
-    - e.g. ~1+"foo"~ 
-    
-- What does it mean for a type system to be sound?
-- What does it mean for a type system to be complete?
-
-- Question from CCLE
-
-  #+begin_quote
-  In Java, in some cases, a program will fail to compile due to a variable not
-  being initialized.
- 
-  Is this something that can be done with a typechecker, using the same kind of
-  rules discussed in class, or does this require more analysis than possible
-  with a typechecker?
-  #+end_quote
 
 * Parsing expression grammars 
 - Deterministic choice
