@@ -152,6 +152,15 @@ fn(t){  # if it's true
   - What's the type?
     ~int~ 
 
+- hmmm
+
+  #+begin_example
+  fn(int x) { y }
+  #+end_example
+
+  - Can we type check this?
+    - No, it's not "closed".
+  
 * type rules
 
 Rules of inference
@@ -238,19 +247,31 @@ N : int
 
       #+begin_src java
       ...
-
+      /**
+       * f0 -> <FN>
+       * f1 -> "("
+       * f2 -> RType()
+       * f3 -> <VAR>
+       * f4 -> ")"
+       * f5 -> "{"
+       * f6 -> Expr()
+       * f7 -> "}"
+       */
       public Vector<Type> visit(Abs n, HashMap env){
-          Vector<Type> argTypes = n.f2.accept(this, env);
-          Type argType  = argTypes.elementAt(0);
+          // get the type of the parameter
+          Vector<Type> paramTypes = n.f2.accept(this, env);
+          Type paramType  = paramTypes.elementAt(0);
 
-          env.put(n.f3.toString(), argType);
+          // add param id and type to the type environment (mapping)
+          env.put(n.f3.toString(), paramType);
 
+          // using the new environment get the type of the expression
           Vector<Type> exprTypes = n.f6.accept(this, env);
           Type exprType = exprTypes.elementAt(0);
 
-          return buildType(new Type(argType, exprType));
+          // construct the arrow type for the abstraction
+          return buildType(new Type(paramType, exprType));
       }
-
       ...
       #+end_src
 
