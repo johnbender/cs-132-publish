@@ -1,0 +1,247 @@
+#+HTML_HEAD: <link href="./assets/bootstrap.min.css" rel="stylesheet">
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+#+TITLE: Fn, JavaCC, JTB, etc
+#+OPTIONS: toc:nil
+
+* fn a small functional language
+* abstraction
+
+#+begin_example
+fn(x){ ... }
+#+end_example
+
+* application
+
+#+begin_example
+fn(1)
+bar(fn(x){ ... }(1))
+#+end_example
+
+* boolean
+** true
+
+#+begin_example
+fn(a){ fn(b){a} }
+#+end_example
+
+** false
+
+#+begin_example
+fn(a){ fn(b){b} }
+#+end_example
+
+** and
+
+#+begin_example
+fn(t){  # if it's true
+  fn(f){ # if it's false
+    fn(b1){ # first bool
+      fn(b2){ # second bool
+        # if b1 is true then it will return b2
+        # otherwise b1 is false and so b1 & b2 is false so f
+        # if b1 is true and b2 is true then t
+        # otherwise f
+        b1(b2)(f)(t)(f)
+      }
+    }
+  }
+}
+#+end_example
+
+* javacc grammar
+- domain specific language for generating Java parsers
+
+- left recursive grammar for fn
+
+  #+begin_example
+  expr := abs | app | var | n
+  app  := expr '(' expr ')'
+  abs  := fn '(' id ')' '{' expr '}'
+  var  := [a-z]([a-z0-9])*
+  n    := [1-9]([0-9])*
+  #+end_example
+
+- javacc definition 
+  #+include: ../../fn/fn-lr.jj 
+
+- javacc semantic actions
+  #+include: ../../fn/fn-semantic.jj 
+
+  - javacc output
+    #+include: ../../fn/parser/Fn-simple.java src java
+
+- left factored grammar for fn
+
+  #+begin_example
+  expr := abs rapp | var rapp | n rapp
+  rapp := '(' expr ')' rapp | e'
+  abs  := fn '(' id ')' '{' expr '}'
+  var  := [a-z]([a-z0-9])*
+  n    := [1-9]([0-9])*
+  #+end_example
+
+* javacc install
+
+Use ~lnxsrv04~
+
+* with types
+
+- grammar 
+
+  #+begin_example
+  expr := abs | app | var
+  app  := expr '(' expr ')'
+  abs  := fn '(' t var ')' '{' expr '}' # 't' added 
+  var  := [a-z]([a-z0-9])*
+  t    := 'int' | t '->' t              # forms for 't'
+  int  := [1-9]([0-9])*
+  #+end_example
+
+- simple type
+  
+  #+begin_example
+  fn(int t) {
+    t
+  } 
+  #+end_example
+
+  - What's the type?
+    ~int -> int~
+
+- complex type
+
+  #+begin_example
+  fn(int -> int t) {
+    t(1)
+  }
+  #+end_example
+
+  - What's the type?
+    ~(int -> int) -> int
+
+- combination
+
+  #+begin_example
+  fn(int -> int t) {
+    t(1)
+  }(fn{int t){
+    t
+  })
+  #+end_example
+
+  - What's the type?
+    ~int~ 
+
+* Type rules
+
+#+begin_example
+T(x) = t
+--------------- var
+T |- x : t
+
+T, x : t1 |- e : t2 
+----------------------------- abs
+T |- fn(t1 x) { e } : t1 -> t2         
+
+T |- e1 : t1 -> t2     T |- e2 : t1
+----------------------------------- app
+T |- e1(e2) : t2
+
+------- int
+N : int
+#+end_example
+
+* JTB
+
+- install
+
+  http://compilers.cs.ucla.edu/jtb/
+
+  #+begin_src bash
+  wget http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
+  # or
+  curl -O http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
+  #+end_src
+
+- generated code
+
+  - What is JTB?
+
+    - javacc definition 
+      #+include: ../../fn/fn.jj 
+
+    - javacc + jtb output
+      #+include: ../../fn/parser/Fn.java src java
+
+  - How does JTB work? 
+    - Semantic actions/objects for creating an AST
+      #+include: ../../fn/parser/jtb.out.jj
+
+    - Visitor classes to subclass for implementation
+      - e.g., ~GJDepthFirst~, ~DepthFirstVisitor~
+
+  - What does "GJ" stand for? 
+    - Why do we care?
+      - The visitor super class can be parameterized over an argument and
+        return type for each ~accept/visit~ method.
+      - Normal visitor relies entirely on side effects ~void~ return type and no
+        arguments.
+      - In our case pass down a type environment, return expression/statement type
+
+      #+begin_src java
+      ...
+
+      public Vector<Type> visit(Abs n, HashMap env){
+          Vector<Type> argTypes = n.f2.accept(this, env);
+          Type argType  = argTypes.elementAt(0);
+
+          env.put(n.f3.toString(), argType);
+
+          Vector<Type> exprTypes = n.f6.accept(this, env);
+          Type exprType = exprTypes.elementAt(0);
+
+          return buildType(new Type(argType, exprType));
+      }
+
+      ...
+      #+end_src
+
+* Type systems
+
+- What are type systems good for? 
+  - What types of behavior do they prevent?
+    - e.g. ~1+"foo"~ 
+    
+- What does it mean for a type system to be sound?
+- What does it mean for a type system to be complete?
+
+- Question from CCLE
+
+  #+begin_quote
+  In Java, in some cases, a program will fail to compile due to a variable not
+  being initialized.
+ 
+  Is this something that can be done with a typechecker, using the same kind of
+  rules discussed in class, or does this require more analysis than possible
+  with a typechecker?
+  #+end_quote
+
+* Parsing expression grammars 
+- Deterministic choice
+  
+  The choice operator becomes deterministic, proceeding left to right:
+
+  #+begin_example
+  A -> B | C | D 
+  ...
+  #+end_example
+
+- Can you write a context free grammar for ~a^nb^nc^n~?
+  - you can with a Parsing Expression Grammar!
+
+- Precedence becomes more natural:
+  
+  #+begin_example
+  expr -> expr + expr | expr - expr | expr * expr | expr / expr | nat
+  nat -> 0 | 1 | 2 | ... 
+  #+end_example
