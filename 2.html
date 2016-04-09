@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2016-04-08 Fri 21:20 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fn, JavaCC, JTB, etc</title>
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="John Bender" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<link href="./assets/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="./assets/style.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Fn, JavaCC, JTB, etc</h1>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1"><span class="section-number-2">1</span> fn a small functional language</h2>
+<div class="outline-text-2" id="text-1">
+<ul class="org-ul">
+<li><p>
+abstraction
+</p>
+
+<pre class="example">
+fn(x){ x }
+</pre></li>
+
+<li><p>
+application
+</p>
+
+<pre class="example">
+fn(x){ x }(1) # =&gt; 1
+</pre></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-2">
+<h2 id="orgheadline2"><span class="section-number-2">2</span> boolean</h2>
+<div class="outline-text-2" id="text-2">
+<ul class="org-ul">
+<li><p>
+true
+</p>
+
+<pre class="example">
+fn(a){ fn(b){a} }
+</pre>
+
+<ul class="org-ul">
+<li>can be thought of as <code>fn(a, b){ a }</code></li>
+<li>it "chooses" the first argument</li>
+</ul></li>
+
+<li><p>
+false
+</p>
+
+<pre class="example">
+fn(a){ fn(b){b} }
+</pre>
+
+<ul class="org-ul">
+<li>can be thought of as <code>fn(a, b){ b }</code></li>
+<li>it "chooses" the second argument</li>
+</ul></li>
+
+<li><p>
+and 
+</p>
+
+<pre class="example">
+fn(t){  # if it's true
+  fn(f){ # if it's false
+    fn(b1){ # first bool
+      fn(b2){ # second bool
+        # where False = `fn(a){ fn(b) { b }}`
+        b1(b2)(False)(t)(f)
+      }
+    }
+  }
+}
+</pre>
+
+<ul class="org-ul">
+<li>description:
+<ul class="org-ul">
+<li>if <code>b1</code> is true then it will return <code>b2</code>
+<ul class="org-ul">
+<li>if <code>b2</code> is true <code>b2(t)(f)</code> will return <code>t</code></li>
+<li>otherwise <code>b2(t)(f)</code> will return <code>f</code></li>
+</ul></li>
+<li>otherwise <code>b1</code> is false and <code>b1(b2)(False)</code> will return <code>False</code>, then
+because <code>False</code> is false <code>False(t)(f)</code> will return <code>f</code>.</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-2">
+<h2 id="orgheadline3"><span class="section-number-2">3</span> type systems</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li>What are type systems good for? 
+<ul class="org-ul">
+<li>What types of behavior do they prevent?
+<ul class="org-ul">
+<li>e.g. ~1+"foo"~</li>
+</ul></li>
+</ul></li>
+
+<li><p>
+What does it mean for a type system to be sound?
+</p>
+
+<p>
+Consider a different property that is not type soundness
+</p>
+
+<ul class="org-ul">
+<li><p>
+Program:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-javascript">x = <span style="color: #8700af;">1</span>;
+turingMachine<span style="color: #268bd2;">()</span>;
+x = <span style="color: #8700af;">2</span>;
+</pre>
+</div></li>
+
+<li><p>
+Property to check: 
+</p>
+
+<p>
+"x is never set to 2"
+</p></li>
+
+<li><p>
+Soundness for a checker: 
+</p>
+
+<p>
+Any program the checker accepts will have the property: "x will never be set
+to 2"
+</p></li>
+
+<li><p>
+Program result: 
+</p>
+
+<p>
+Type checker rejects the program even though the assignment may never be
+reached
+</p></li>
+</ul></li>
+
+<li>What does it mean for a type system to be complete?
+<ul class="org-ul">
+<li><p>
+Program:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-javascript">x = <span style="color: #8700af;">1</span>;
+<span style="color: #268bd2; font-weight: bold;">if</span><span style="color: #268bd2;">(</span> turingMachineThatAlwaysResultsInTrue<span style="color: #8700af;">()</span> <span style="color: #268bd2;">){</span>
+  <span style="color: #268bd2; font-weight: bold;">return</span>;
+<span style="color: #268bd2;">}</span>
+x = <span style="color: #8700af;">2</span>;
+</pre>
+</div></li>
+<li><p>
+Property: 
+</p>
+
+<p>
+"x is never set to 2"
+</p></li>
+
+<li><p>
+Completeness for a checker: 
+</p>
+
+<p>
+Any program that has the property "x will never be set to 2" must be
+accepted by the checker.
+</p></li>
+
+<li><p>
+Program result: 
+</p>
+
+<p>
+Complete type checker accepts the program, because it will always return
+early (as long as you believe the function name).
+</p></li>
+</ul></li>
+
+<li>What does it mean for a type system to be sound and complete?</li>
+
+<li><p>
+Question from CCLE
+</p>
+
+<blockquote>
+<p>
+In Java, in some cases, a program will fail to compile due to a variable not being initialized.
+</p>
+
+<p>
+Is this something that can be done with a typechecker, using the same kind of rules discussed in class, or does this require more analysis than possible with a typechecker?
+</p>
+</blockquote></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-2">
+<h2 id="orgheadline4"><span class="section-number-2">4</span> fn with types</h2>
+<div class="outline-text-2" id="text-4">
+<ul class="org-ul">
+<li><p>
+grammar 
+</p>
+
+<pre class="example">
+expr := abs | app | var | nat
+app  := expr '(' expr ')'
+abs  := fn '(' t var ')' '{' expr '}'
+var  := [a-z]([a-z0-9])*
+t    := 'nat' | t '-&gt;' t             
+nat  := [1-9]([0-9])*
+</pre></li>
+
+<li><p>
+simple type
+</p>
+
+<pre class="example">
+fn(nat t) {
+  t
+}
+</pre>
+
+<ul class="org-ul">
+<li>What's the type?
+<code>nat -&gt; nat</code></li>
+</ul></li>
+
+<li><p>
+complex type
+</p>
+
+<pre class="example">
+fn(nat -&gt; nat t) {
+  t(1)
+}
+</pre>
+
+<ul class="org-ul">
+<li>What's the type?
+<code>(nat -&gt; nat) -&gt; nat</code></li>
+</ul></li>
+
+<li><p>
+combination
+</p>
+
+<pre class="example">
+fn(nat -&gt; nat t) {
+  t(1)
+}(fn{nat t){
+  t
+})
+</pre>
+
+<ul class="org-ul">
+<li>What's the type?
+<code>nat</code></li>
+</ul></li>
+
+<li><p>
+closed expressions
+</p>
+
+<pre class="example">
+fn(nat x) { y }
+</pre>
+
+<ul class="org-ul">
+<li>Can we type check this?
+<ul class="org-ul">
+<li>No, it's not "closed".</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-2">
+<h2 id="orgheadline5"><span class="section-number-2">5</span> type rules</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+Rules of inference
+</p>
+
+<pre class="example">
+------- nat
+N : nat
+
+T(id) = t
+--------------- var
+T |- id : t
+
+T, id : t1 |- e : t2 
+------------------------------- abs
+T |- fn(t1 id) { e } : t1 -&gt; t2         
+
+T |- e1 : t1 -&gt; t2     T |- e2 : t1
+----------------------------------- app
+T |- e1(e2) : t2
+</pre>
+
+<ul class="org-ul">
+<li>What is <code>T</code>?
+<ul class="org-ul">
+<li>A mapping from variable identifiers to types</li>
+</ul></li>
+
+<li><code>nat</code>
+<ul class="org-ul">
+<li>What is the type of <code>1</code>?</li>
+<li>no assumptions, axiom</li>
+</ul></li>
+
+<li><code>var</code>
+<ul class="org-ul">
+<li>What is <code>T(x)</code>?
+<ul class="org-ul">
+<li>A lookup in the mapping</li>
+</ul></li>
+</ul></li>
+
+<li><code>abs</code>
+<ul class="org-ul">
+<li>What does <code>T, id : t1</code> mean?</li>
+<li>Why doing that here?</li>
+<li>Why do we need a mapping to determine the type of some expression?</li>
+</ul></li>
+
+<li><code>app</code>
+<ul class="org-ul">
+<li>Why is the type <code>t2</code>?</li>
+</ul></li>
+
+<li>Induction?
+<ul class="org-ul">
+<li>Why do we care?
+<ul class="org-ul">
+<li>nice clean recipe for type checking</li>
+</ul></li>
+</ul></li>
+
+<li>How do we know that this type system is sound?
+<ul class="org-ul">
+<li>proofs, requires semantics</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: John Bender</p>
+<p class="date">Created: 2016-04-08 Fri 21:20</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

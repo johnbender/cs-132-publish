@@ -17,72 +17,47 @@
   #+end_example
 
 * boolean
-** true
 
-#+begin_example
-fn(a){ fn(b){a} } 
-#+end_example
+- true
 
-** false
+  #+begin_example
+  fn(a){ fn(b){a} } 
+  #+end_example
 
-#+begin_example
-fn(a){ fn(b){b} }
-#+end_example
+  - can be thought of as ~fn(a, b){ a }~
+  - it "chooses" the first argument
 
-** and
+- false
 
-#+begin_example
-fn(t){  # if it's true
-  fn(f){ # if it's false
-    fn(b1){ # first bool
-      fn(b2){ # second bool
-        # if b1 is true then it will return b2
-        # otherwise b1 is false and so b1 & b2 is false so f
-        # if b1 is true and b2 is true then t
-        # otherwise f
-        b1(b2)(f)(t)(f)
+  #+begin_example
+  fn(a){ fn(b){b} }
+  #+end_example
+
+  - can be thought of as ~fn(a, b){ b }~
+  - it "chooses" the second argument
+
+- and 
+
+  #+begin_example
+  fn(t){  # if it's true
+    fn(f){ # if it's false
+      fn(b1){ # first bool
+        fn(b2){ # second bool
+          # where False = `fn(a){ fn(b) { b }}`
+          b1(b2)(False)(t)(f)
+        }
       }
     }
   }
-}
-#+end_example
+  #+end_example
 
-* javacc
-- install
-  Use ~lnxsrv04~
-
-- grammar
-  - domain specific language for generating Java parsers
-
-  - left recursive grammar for fn
-
-    #+begin_example
-    expr := abs | app | var | n
-    app  := expr '(' expr ')'
-    abs  := fn '(' id ')' '{' expr '}'
-    var  := [a-z]([a-z0-9])*
-    n    := [1-9]([0-9])*
-    #+end_example
-
-  - javacc definition 
-    #+include: ../../fn/fn-lr.jj 
-
-  - javacc semantic actions
-    #+include: ../../fn/fn-semantic.jj 
-
-    - javacc output
-      #+include: ../../fn/parser/Fn-simple.java src java
-
-  - left factored grammar for fn
-
-    #+begin_example
-    expr := abs rapp | var rapp | n rapp
-    rapp := '(' expr ')' rapp | e'
-    abs  := fn '(' id ')' '{' expr '}'
-    var  := [a-z]([a-z0-9])*
-    n    := [1-9]([0-9])*
-    #+end_example
-
+  - description:
+    - if ~b1~ is true then it will return ~b2~
+      - if ~b2~ is true ~b2(t)(f)~ will return ~t~
+      - otherwise ~b2(t)(f)~ will return ~f~
+    - otherwise ~b1~ is false and ~b1(b2)(False)~ will return ~False~, then
+      because ~False~ is false ~False(t)(f)~ will return ~f~.
+  
 * type systems
 
 - What are type systems good for? 
@@ -90,18 +65,61 @@ fn(t){  # if it's true
     - e.g. ~1+"foo"~ 
     
 - What does it mean for a type system to be sound?
+  
+    Consider a different property that is not type soundness
 
+  - Program:
+    #+begin_src javascript
+    x = 1;
+    turingMachine();
+    x = 2;
+    #+end_src
+
+  - Property to check: 
+
+    "x is never set to 2"
+
+  - Soundness for a checker: 
+
+    Any program the checker accepts will have the property: "x will never be set
+    to 2"
+
+  - Program result: 
+    
+    Type checker rejects the program even though the assignment may never be
+    reached
+    
 - What does it mean for a type system to be complete?
+  - Program:
+    #+begin_src javascript
+    x = 1;
+    if( turingMachineThatAlwaysResultsInTrue() ){
+      return;
+    }
+    x = 2;
+    #+end_src
+  - Property: 
+    
+    "x is never set to 2"
+
+  - Completeness for a checker: 
+    
+    Any program that has the property "x will never be set to 2" must be
+    accepted by the checker.
+    
+  - Program result: 
+
+    Complete type checker accepts the program, because it will always return
+    early (as long as you believe the function name).
+
+- What does it mean for a type system to be sound and complete?
 
 - Question from CCLE
 
   #+begin_quote
-  In Java, in some cases, a program will fail to compile due to a variable not
-  being initialized.
+  In Java, in some cases, a program will fail to compile due to a variable not being initialized.
  
-  Is this something that can be done with a typechecker, using the same kind of
-  rules discussed in class, or does this require more analysis than possible
-  with a typechecker?
+  Is this something that can be done with a typechecker, using the same kind of rules discussed in class, or does this require more analysis than possible with a typechecker?
   #+end_quote
 
 * fn with types
@@ -109,53 +127,53 @@ fn(t){  # if it's true
 - grammar 
 
   #+begin_example
-  expr := abs | app | var
+  expr := abs | app | var | nat
   app  := expr '(' expr ')'
-  abs  := fn '(' t var ')' '{' expr '}' # 't' added 
+  abs  := fn '(' t var ')' '{' expr '}'
   var  := [a-z]([a-z0-9])*
-  t    := 'int' | t '->' t              # forms for 't'
-  int  := [1-9]([0-9])*
+  t    := 'nat' | t '->' t             
+  nat  := [1-9]([0-9])*
   #+end_example
 
 - simple type
   
   #+begin_example
-  fn(int t) {
+  fn(nat t) {
     t
   } 
   #+end_example
 
   - What's the type?
-    ~int -> int~
+    ~nat -> nat~
 
 - complex type
 
   #+begin_example
-  fn(int -> int t) {
+  fn(nat -> nat t) {
     t(1)
   }
   #+end_example
 
   - What's the type?
-    ~(int -> int) -> int
+    ~(nat -> nat) -> nat~
 
 - combination
 
   #+begin_example
-  fn(int -> int t) {
+  fn(nat -> nat t) {
     t(1)
-  }(fn{int t){
+  }(fn{nat t){
     t
   })
   #+end_example
 
   - What's the type?
-    ~int~ 
+    ~nat~ 
 
-- hmmm
+- closed expressions
 
   #+begin_example
-  fn(int x) { y }
+  fn(nat x) { y }
   #+end_example
 
   - Can we type check this?
@@ -166,26 +184,27 @@ fn(t){  # if it's true
 Rules of inference
 
 #+begin_example
+------- nat
+N : nat
+
 T(id) = t
 --------------- var
 T |- id : t
 
 T, id : t1 |- e : t2 
------------------------------ abs
+------------------------------- abs
 T |- fn(t1 id) { e } : t1 -> t2         
 
 T |- e1 : t1 -> t2     T |- e2 : t1
 ----------------------------------- app
 T |- e1(e2) : t2
-
-------- int
-N : int
 #+end_example
 
 - What is ~T~?
   - A mapping from variable identifiers to types
 
-- ~int~
+- ~nat~
+  - What is the type of ~1~?
   - no assumptions, axiom
 
 - ~var~
@@ -200,97 +219,129 @@ N : int
 - ~app~
   - Why is the type ~t2~?
 
-- Induction!
+- Induction?
   - Why do we care?
     - nice clean recipe for type checking
 
 - How do we know that this type system is sound?
   - proofs, requires semantics
 
-* JTB
+# * javacc
+# - install
 
-- install
+#   Use ~lnxsrv04~
 
-  http://compilers.cs.ucla.edu/jtb/
+# - grammar
+#   - domain specific language for generating Java parsers
 
-  #+begin_src bash
-  wget http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
-  # or
-  curl -O http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
-  #+end_src
+#   - left recursive grammar for fn
 
-- generated code
+#     #+begin_example
+#     expr := abs | app | var | n
+#     app  := expr '(' expr ')'
+#     abs  := fn '(' id ')' '{' expr '}'
+#     var  := [a-z]([a-z0-9])*
+#     n    := [1-9]([0-9])*
+#     #+end_example
+    
+#   - Why is it left-recursive?
 
-  - What is JTB?
+#   - javacc definition 
+#     #+include: ../../fn/fn-lr.jj 
 
-    - javacc definition 
-      #+include: ../../fn/fn.jj 
+#   - javacc semantic actions
+#     #+include: ../../fn/fn-semantic.jj 
 
-    - javacc + jtb output
-      #+include: ../../fn/parser/Fn.java src java
+#     - javacc output
+#       #+include: ../../fn/parser/Fn-simple.java src java
 
-  - How does JTB work? 
-    - Semantic actions/objects for creating an AST
-      #+include: ../../fn/parser/jtb.out.jj
+#   - left factored grammar for fn
 
-    - Visitor classes to subclass for implementation
-      - e.g., ~GJDepthFirst~, ~DepthFirstVisitor~
+#     #+begin_example
+#     expr := abs rapp | var rapp | n rapp
+#     rapp := '(' expr ')' rapp | e'
+#     abs  := fn '(' id ')' '{' expr '}'
+#     var  := [a-z]([a-z0-9])*
+#     n    := [1-9]([0-9])*
+#     #+end_example
 
-  - What does "GJ" stand for? 
-    - Why do we care?
-      - The visitor super class can be parameterized over an argument and
-        return type for each ~accept/visit~ method.
-        - recall the type rules!
-      - Normal visitor relies entirely on side effects ~void~ return type and no
-        arguments.
-      - In our case pass down a type environment, return expression/statement type
+# * JTB
 
-      #+begin_src java
-      ...
-      /**
-       * f0 -> <FN>
-       * f1 -> "("
-       * f2 -> RType()
-       * f3 -> <VAR>
-       * f4 -> ")"
-       * f5 -> "{"
-       * f6 -> Expr()
-       * f7 -> "}"
-       */
-      public Vector<Type> visit(Abs n, HashMap env){
-          // get the type of the parameter
-          Vector<Type> paramTypes = n.f2.accept(this, env);
-          Type paramType  = paramTypes.elementAt(0);
+# - install
 
-          // add param id and type to the type environment (mapping)
-          env.put(n.f3.toString(), paramType);
+#   http://compilers.cs.ucla.edu/jtb/
 
-          // using the new environment get the type of the expression
-          Vector<Type> exprTypes = n.f6.accept(this, env);
-          Type exprType = exprTypes.elementAt(0);
+#   #+begin_src bash
+#   wget http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
+#   # or
+#   curl -O http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
+#   #+end_src
 
-          // construct the arrow type for the abstraction
-          return buildType(new Type(paramType, exprType));
-      }
-      ...
-      #+end_src
+# - What is JTB?
 
-* Parsing expression grammars 
-- Deterministic choice
+#   - javacc definition 
+#     #+include: ../../fn/fn.jj 
+
+#   - javacc + jtb output
+#     #+include: ../../fn/parser/Fn.java src java
+
+# - How does JTB work? 
+#   - Semantic actions/objects for creating an AST
+#     #+include: ../../fn/parser/jtb.out.jj
+
+#   - Visitor classes to subclass for implementation
+#     - e.g., ~GJDepthFirst~, ~DepthFirstVisitor~
+
+# - What does "GJ" stand for? 
+#   - Why do we care?
+#     - The visitor super class can be parameterized over an argument and
+#       return type for each ~accept/visit~ method.
+#       - recall the type rules!
+#     - Normal visitor relies entirely on side effects ~void~ return type and no
+#       arguments.
+#     - In our case pass down a type environment, return expression/statement type
+
+#     #+begin_src java
+#     ...
+#     /**
+#      * f0 -> <FN>
+#      * f1 -> "("
+#      * f2 -> RType()
+#      * f3 -> <VAR>
+#      * f4 -> ")"
+#      * f5 -> "{"
+#      * f6 -> Expr()
+#      * f7 -> "}"
+#      */
+#     public Vector<Type> visit(Abs n, HashMap env){
+#         // get the type of the parameter
+#         Vector<Type> paramTypes = n.f2.accept(this, env);
+#         Type paramType  = paramTypes.elementAt(0);
+
+#         // add param id and type to the type environment (mapping)
+#         env.put(n.f3.toString(), paramType);
+
+#         // using the new environment get the type of the expression
+#         Vector<Type> exprTypes = n.f6.accept(this, env);
+#         Type exprType = exprTypes.elementAt(0);
+
+#         // construct the arrow type for the abstraction
+#         return buildType(new Type(paramType, exprType));
+#     }
+#     ...
+#     #+end_src
+
+# * Parsing expression grammars 
+# - Deterministic choice
   
-  The choice operator becomes deterministic, proceeding left to right:
+#   The choice operator becomes deterministic, proceeding left to right:
 
-  #+begin_example
-  A -> B | C | D 
-  ...
-  #+end_example
+#   #+begin_example
+#   A -> B | C | D 
+#   ...
+#   #+end_example
 
-- Can you write a context free grammar for ~a^nb^nc^n~?
-  - you can with a Parsing Expression Grammar!
+# - Can you write a context free grammar for ~a^nb^nc^n~?
+#   - you can with a Parsing Expression Grammar!
+#   - There are ostensibly CFG's that can't be written as a PEG
 
-- Precedence becomes more natural:
-  
-  #+begin_example
-  expr -> expr + expr | expr - expr | expr * expr | expr / expr | nat
-  nat -> 0 | 1 | 2 | ... 
-  #+end_example
