@@ -1,0 +1,1547 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2016-04-11 Mon 14:38 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="viewport" content="width=device-width, initial-scale=1" />
+<title>HW1 Grading, JTB, TypeVisitor, etc</title>
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="John Bender" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<link href="./assets/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="./assets/style.css" />
+<script src="./assets/jquery-1.7.1.js"></script>
+<script src="./assets/site.js"></script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">HW1 Grading, JTB, TypeVisitor, etc</h1>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1"><span class="section-number-2">1</span> homework 1 grading</h2>
+<div class="outline-text-2" id="text-1">
+<ul class="org-ul">
+<li>grammar out of 100
+<ul class="org-ul">
+<li>if you tried all four parts you got a minimum of 50
+<ul class="org-ul">
+<li>if you got the grammar wrong you got a 50</li>
+<li>if you got the grammar right, each of the other parts was worth ~16</li>
+</ul></li>
+</ul></li>
+
+<li>parser out of 100
+<ul class="org-ul">
+<li>grading script, out of 28 tests</li>
+</ul></li>
+
+<li><code>(grammar + parser)/2</code></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-2">
+<h2 id="orgheadline2"><span class="section-number-2">2</span> javacc</h2>
+<div class="outline-text-2" id="text-2">
+<ul class="org-ul">
+<li>What is javacc?
+<ul class="org-ul">
+<li>domain specific language for generating Java parsers</li>
+</ul></li>
+
+<li>install/setup?
+<ul class="org-ul">
+<li>Use <code>lnxsrv04</code></li>
+</ul></li>
+
+<li>grammar without types
+<ul class="org-ul">
+<li><p>
+left recursive grammar for fn
+</p>
+
+<pre class="example">
+expr := abs | app | var | n
+app  := expr '(' expr ')'
+abs  := fn '(' id ')' '{' expr '}'
+var  := [a-z]([a-z0-9])*
+n    := [1-9]([0-9])*
+</pre></li>
+
+<li>Why is it left-recursive?</li>
+
+<li><p>
+javacc definition 
+</p>
+<div class="org-src-container">
+
+<pre class="src src-javacc">/* preamble with class for static methods/input stream*/
+PARSER_BEGIN(Fn)
+  class Fn { }
+PARSER_END(Fn)
+
+SKIP :
+{ " " | "\t" | "\n" }
+
+TOKEN:
+{ &lt; FN: "fn" &gt;
+| &lt; LPAREN: "(" &gt;
+| &lt; RPAREN: ")" &gt;
+| &lt; LCURLY: "{" &gt;
+| &lt; RCURLY: "}" &gt;
+| &lt; VAR: ["a"-"z"](["a"-"z"] | ["0"-"9"])* &gt;
+| &lt; N: ["1"-"9"](["0"-"9"])* &gt;
+}
+
+void Prog() :
+{}
+{ Expr() &lt;EOF&gt; }
+
+void Expr() :
+{}
+{ Abs()
+| App()
+| &lt;VAR&gt;
+| &lt;N&gt;
+}
+
+void Abs() :
+{}
+{ &lt;FN&gt; "(" &lt;ID&gt; ")" "{" Expr() "}" }
+
+void App() :
+{}
+{ Expr() "(" Expr() ")" }
+</pre>
+</div></li>
+
+<li><p>
+javacc semantic actions
+</p>
+<div class="org-src-container">
+
+<pre class="src src-javacc">PARSER_BEGIN(Fn)
+package parser;
+
+public class Fn {
+}
+PARSER_END(Fn)
+
+SKIP :
+{ " "
+| "\t"
+| "\n"
+| &lt;"#" (~["\n","\r"])* ("\n" | "\r" | "\r\n")&gt;
+}
+
+TOKEN:
+{ &lt; FN: "fn" &gt;
+| &lt; LPAREN: "(" &gt;
+| &lt; RPAREN: ")" &gt;
+| &lt; LCURLY: "{" &gt;
+| &lt; RCURLY: "}" &gt;
+| &lt; ID: ["a"-"z"](["a"-"z"] | ["0"-"9"])* &gt;
+| &lt; N: ["1"-"9"](["0"-"9"])* &gt;
+}
+
+void Prog() :
+{}
+{ Expr() &lt;EOF&gt; }
+
+void Expr() :
+{ String abs; }
+{ abs=Abs() RApp() { System.out.println( "param: " + abs ); }
+| &lt;N&gt; RApp()
+}
+
+String Abs() :
+{ Token id; }
+{
+  &lt;FN&gt; "(" id=&lt;ID&gt; ")" "{" Expr() "}" { return id.image; }
+}
+
+void RApp() :
+{}
+{ ( "(" Expr() ")" RApp() )? }
+</pre>
+</div>
+
+<ul class="org-ul">
+<li><p>
+javacc output
+</p>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #008787; background-color: #ffffff;">/* </span><span style="color: #008787; background-color: #ffffff;">Generated By:JavaCC: Do not edit this line. Fn.java */</span>
+<span style="color: #268bd2; font-weight: bold;">package</span> <span style="color: #8700af;">parser</span>;
+
+<span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">Fn</span> <span style="color: #268bd2; font-weight: bold;">implements</span> <span style="color: #af005f; font-weight: bold;">FnConstants</span> <span style="color: #268bd2;">{</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">Prog</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+    Expr<span style="color: #2aa198;">()</span>;
+    jj_consume_token<span style="color: #2aa198;">(</span><span style="color: #8700af;">0</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">Expr</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+  <span style="color: #af005f; font-weight: bold;">String</span> <span style="color: #af5fd7;">abs</span>;
+    <span style="color: #268bd2; font-weight: bold;">switch</span> <span style="color: #2aa198;">(</span><span style="color: #5faf00;">(</span>jj_ntk==-<span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>?jj_ntk<span style="color: #5faf00;">()</span>:jj_ntk<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">case</span> FN:
+      abs = Abs<span style="color: #5faf00;">()</span>;
+      RApp<span style="color: #5faf00;">()</span>;
+                     System.out.println<span style="color: #5faf00;">(</span> <span style="color: #2aa198;">"param: "</span> + abs <span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">break</span>;
+    <span style="color: #268bd2; font-weight: bold;">case</span> N:
+      jj_consume_token<span style="color: #5faf00;">(</span>N<span style="color: #5faf00;">)</span>;
+      RApp<span style="color: #5faf00;">()</span>;
+      <span style="color: #268bd2; font-weight: bold;">break</span>;
+    <span style="color: #268bd2; font-weight: bold;">default</span>:
+      jj_la1<span style="color: #5faf00;">[</span><span style="color: #8700af;">0</span><span style="color: #5faf00;">]</span> = jj_gen;
+      jj_consume_token<span style="color: #5faf00;">(</span>-<span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">ParseException</span><span style="color: #5faf00;">()</span>;
+    <span style="color: #2aa198;">}</span>
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">String</span> <span style="color: #8700af; font-weight: bold;">Abs</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+  <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">id</span>;
+    jj_consume_token<span style="color: #2aa198;">(</span>FN<span style="color: #2aa198;">)</span>;
+    jj_consume_token<span style="color: #2aa198;">(</span>LPAREN<span style="color: #2aa198;">)</span>;
+    id = jj_consume_token<span style="color: #2aa198;">(</span>ID<span style="color: #2aa198;">)</span>;
+    jj_consume_token<span style="color: #2aa198;">(</span>RPAREN<span style="color: #2aa198;">)</span>;
+    jj_consume_token<span style="color: #2aa198;">(</span>LCURLY<span style="color: #2aa198;">)</span>;
+    Expr<span style="color: #2aa198;">()</span>;
+    jj_consume_token<span style="color: #2aa198;">(</span>RCURLY<span style="color: #2aa198;">)</span>;
+                                        <span style="color: #2aa198;">{</span><span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span><span style="color: #8700af;">true</span><span style="color: #5faf00;">)</span> <span style="color: #268bd2; font-weight: bold;">return</span> id.image;<span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"Missing return statement in function"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">RApp</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">switch</span> <span style="color: #2aa198;">(</span><span style="color: #5faf00;">(</span>jj_ntk==-<span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>?jj_ntk<span style="color: #5faf00;">()</span>:jj_ntk<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">case</span> LPAREN:
+      jj_consume_token<span style="color: #5faf00;">(</span>LPAREN<span style="color: #5faf00;">)</span>;
+      Expr<span style="color: #5faf00;">()</span>;
+      jj_consume_token<span style="color: #5faf00;">(</span>RPAREN<span style="color: #5faf00;">)</span>;
+      RApp<span style="color: #5faf00;">()</span>;
+      <span style="color: #268bd2; font-weight: bold;">break</span>;
+    <span style="color: #268bd2; font-weight: bold;">default</span>:
+      jj_la1<span style="color: #5faf00;">[</span><span style="color: #8700af;">1</span><span style="color: #5faf00;">]</span> = jj_gen;
+      ;
+    <span style="color: #2aa198;">}</span>
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">boolean</span> <span style="color: #af5fd7;">jj_initialized_once</span> = <span style="color: #8700af;">false</span>;
+  <span style="color: #008787;">/** Generated Token Manager. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">FnTokenManager</span> <span style="color: #af5fd7;">token_source</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #af005f; font-weight: bold;">SimpleCharStream</span> <span style="color: #af5fd7;">jj_input_stream</span>;
+  <span style="color: #008787;">/** Current token. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">token</span>;
+  <span style="color: #008787;">/** Next token. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">jj_nt</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">jj_ntk</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">jj_gen</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #8700af;">[]</span> <span style="color: #af5fd7;">jj_la1</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #8700af;">[</span><span style="color: #8700af;">2</span><span style="color: #8700af;">]</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #8700af;">[]</span> <span style="color: #af5fd7;">jj_la1_0</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #8700af;">{</span>
+      jj_la1_init_0<span style="color: #2aa198;">()</span>;
+   <span style="color: #8700af;">}</span>
+   <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">jj_la1_init_0</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+      jj_la1_0 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #2aa198;">{</span><span style="color: #8700af;">0x820</span>,<span style="color: #8700af;">0x40</span>,<span style="color: #2aa198;">}</span>;
+   <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Constructor with InputStream. */</span>
+  <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af; font-weight: bold;">Fn</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">InputStream</span> <span style="color: #af5fd7;">stream</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+     <span style="color: #268bd2; font-weight: bold;">this</span><span style="color: #2aa198;">(</span>stream, <span style="color: #8700af;">null</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+  <span style="color: #008787;">/** Constructor with InputStream and supplied encoding */</span>
+  <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af; font-weight: bold;">Fn</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">InputStream</span> <span style="color: #af5fd7;">stream</span>, <span style="color: #af005f; font-weight: bold;">String</span> <span style="color: #af5fd7;">encoding</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>jj_initialized_once<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"ERROR: Second call to constructor of static parser.  "</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       You must either use ReInit() or set the JavaCC option STATIC to false"</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       during parser generation."</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #5faf00;">()</span>;
+    <span style="color: #2aa198;">}</span>
+    jj_initialized_once = <span style="color: #8700af;">true</span>;
+    <span style="color: #268bd2; font-weight: bold;">try</span> <span style="color: #2aa198;">{</span> jj_input_stream = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">SimpleCharStream</span><span style="color: #5faf00;">(</span>stream, encoding, <span style="color: #8700af;">1</span>, <span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>; <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">catch</span><span style="color: #2aa198;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">UnsupportedEncodingException</span> <span style="color: #af5fd7;">e</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span> <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">RuntimeException</span><span style="color: #5faf00;">(</span>e<span style="color: #5faf00;">)</span>; <span style="color: #2aa198;">}</span>
+    token_source = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">FnTokenManager</span><span style="color: #2aa198;">(</span>jj_input_stream<span style="color: #2aa198;">)</span>;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">2</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Reinitialise. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">ReInit</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">InputStream</span> <span style="color: #af5fd7;">stream</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+     ReInit<span style="color: #2aa198;">(</span>stream, <span style="color: #8700af;">null</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+  <span style="color: #008787;">/** Reinitialise. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">ReInit</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">InputStream</span> <span style="color: #af5fd7;">stream</span>, <span style="color: #af005f; font-weight: bold;">String</span> <span style="color: #af5fd7;">encoding</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">try</span> <span style="color: #2aa198;">{</span> <span style="color: #8700af;">jj_input_stream</span>.ReInit<span style="color: #5faf00;">(</span>stream, encoding, <span style="color: #8700af;">1</span>, <span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>; <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">catch</span><span style="color: #2aa198;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">UnsupportedEncodingException</span> <span style="color: #af5fd7;">e</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span> <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">RuntimeException</span><span style="color: #5faf00;">(</span>e<span style="color: #5faf00;">)</span>; <span style="color: #2aa198;">}</span>
+    <span style="color: #8700af;">token_source</span>.ReInit<span style="color: #2aa198;">(</span>jj_input_stream<span style="color: #2aa198;">)</span>;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">2</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Constructor. */</span>
+  <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af; font-weight: bold;">Fn</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">Reader</span> <span style="color: #af5fd7;">stream</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>jj_initialized_once<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"ERROR: Second call to constructor of static parser. "</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       You must either use ReInit() or set the JavaCC option STATIC to false"</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       during parser generation."</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #5faf00;">()</span>;
+    <span style="color: #2aa198;">}</span>
+    jj_initialized_once = <span style="color: #8700af;">true</span>;
+    jj_input_stream = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">SimpleCharStream</span><span style="color: #2aa198;">(</span>stream, <span style="color: #8700af;">1</span>, <span style="color: #8700af;">1</span><span style="color: #2aa198;">)</span>;
+    token_source = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">FnTokenManager</span><span style="color: #2aa198;">(</span>jj_input_stream<span style="color: #2aa198;">)</span>;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">2</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Reinitialise. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">ReInit</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">Reader</span> <span style="color: #af5fd7;">stream</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #8700af;">jj_input_stream</span>.ReInit<span style="color: #2aa198;">(</span>stream, <span style="color: #8700af;">1</span>, <span style="color: #8700af;">1</span><span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">token_source</span>.ReInit<span style="color: #2aa198;">(</span>jj_input_stream<span style="color: #2aa198;">)</span>;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">2</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Constructor with generated Token Manager. */</span>
+  <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af; font-weight: bold;">Fn</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">FnTokenManager</span> <span style="color: #af5fd7;">tm</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>jj_initialized_once<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"ERROR: Second call to constructor of static parser. "</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       You must either use ReInit() or set the JavaCC option STATIC to false"</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       during parser generation."</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #5faf00;">()</span>;
+    <span style="color: #2aa198;">}</span>
+    jj_initialized_once = <span style="color: #8700af;">true</span>;
+    token_source = tm;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">2</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Reinitialise. */</span>
+  <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">ReInit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">FnTokenManager</span> <span style="color: #af5fd7;">tm</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    token_source = tm;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">2</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #8700af; font-weight: bold;">jj_consume_token</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">kind</span><span style="color: #8700af;">)</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+    <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">oldToken</span>;
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span><span style="color: #5faf00;">(</span>oldToken = token<span style="color: #5faf00;">)</span>.next != <span style="color: #8700af;">null</span><span style="color: #2aa198;">)</span> token = token.next;
+    <span style="color: #268bd2; font-weight: bold;">else</span> token = token.next = token_source.getNextToken<span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>token.kind == kind<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      jj_gen++;
+      <span style="color: #268bd2; font-weight: bold;">return</span> token;
+    <span style="color: #2aa198;">}</span>
+    token = oldToken;
+    jj_kind = kind;
+    <span style="color: #268bd2; font-weight: bold;">throw</span> generateParseException<span style="color: #2aa198;">()</span>;
+  <span style="color: #8700af;">}</span>
+
+
+<span style="color: #008787;">/** Get the next Token. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #8700af; font-weight: bold;">getNextToken</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>token.next != <span style="color: #8700af;">null</span><span style="color: #2aa198;">)</span> token = token.next;
+    <span style="color: #268bd2; font-weight: bold;">else</span> token = token.next = token_source.getNextToken<span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen++;
+    <span style="color: #268bd2; font-weight: bold;">return</span> token;
+  <span style="color: #8700af;">}</span>
+
+<span style="color: #008787;">/** Get the specific Token. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #8700af; font-weight: bold;">getToken</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">index</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">t</span> = token;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #af005f; font-weight: bold;">index</span>; i++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span>t.next != <span style="color: #8700af;">null</span><span style="color: #5faf00;">)</span> t = t.next;
+      <span style="color: #268bd2; font-weight: bold;">else</span> t = t.next = token_source.getNextToken<span style="color: #5faf00;">()</span>;
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">return</span> t;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #8700af; font-weight: bold;">jj_ntk</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span><span style="color: #5faf00;">(</span>jj_nt=token.next<span style="color: #5faf00;">)</span> == <span style="color: #8700af;">null</span><span style="color: #2aa198;">)</span>
+      <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #2aa198;">(</span>jj_ntk = <span style="color: #5faf00;">(</span>token.next=token_source.getNextToken<span style="color: #875f00;">()</span><span style="color: #5faf00;">)</span>.kind<span style="color: #2aa198;">)</span>;
+    <span style="color: #268bd2; font-weight: bold;">else</span>
+      <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #2aa198;">(</span>jj_ntk = jj_nt.kind<span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #8700af;">java</span>.<span style="color: #8700af;">util</span>.<span style="color: #af005f; font-weight: bold;">List</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">int</span><span style="color: #2aa198;">[]</span><span style="color: #8700af;">&gt;</span> <span style="color: #af5fd7;">jj_expentries</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #8700af;">java</span>.<span style="color: #8700af;">util</span>.<span style="color: #af005f; font-weight: bold;">ArrayList</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">int</span><span style="color: #2aa198;">[]</span><span style="color: #8700af;">&gt;()</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #8700af;">[]</span> <span style="color: #af5fd7;">jj_expentry</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">jj_kind</span> = -<span style="color: #8700af;">1</span>;
+
+  <span style="color: #008787;">/** Generate ParseException. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af; font-weight: bold;">generateParseException</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+    jj_expentries.clear<span style="color: #2aa198;">()</span>;
+    <span style="color: #af005f; font-weight: bold;">boolean</span><span style="color: #2aa198;">[]</span> <span style="color: #af5fd7;">la1tokens</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">boolean</span><span style="color: #2aa198;">[</span><span style="color: #8700af;">12</span><span style="color: #2aa198;">]</span>;
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>jj_kind &gt;= <span style="color: #8700af;">0</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      la1tokens<span style="color: #5faf00;">[</span>jj_kind<span style="color: #5faf00;">]</span> = <span style="color: #8700af;">true</span>;
+      jj_kind = -<span style="color: #8700af;">1</span>;
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">2</span>; i++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span>jj_la1<span style="color: #875f00;">[</span>i<span style="color: #875f00;">]</span> == jj_gen<span style="color: #5faf00;">)</span> <span style="color: #5faf00;">{</span>
+        <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #875f00;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">j</span> = <span style="color: #8700af;">0</span>; j &lt; <span style="color: #8700af;">32</span>; j++<span style="color: #875f00;">)</span> <span style="color: #875f00;">{</span>
+          <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #268bd2;">(</span><span style="color: #8700af;">(</span>jj_la1_0<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> &amp; <span style="color: #2aa198;">(</span><span style="color: #8700af;">1</span>&lt;&lt;j<span style="color: #2aa198;">)</span><span style="color: #8700af;">)</span> != <span style="color: #8700af;">0</span><span style="color: #268bd2;">)</span> <span style="color: #268bd2;">{</span>
+            la1tokens<span style="color: #8700af;">[</span>j<span style="color: #8700af;">]</span> = <span style="color: #8700af;">true</span>;
+          <span style="color: #268bd2;">}</span>
+        <span style="color: #875f00;">}</span>
+      <span style="color: #5faf00;">}</span>
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">12</span>; i++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span>la1tokens<span style="color: #875f00;">[</span>i<span style="color: #875f00;">]</span><span style="color: #5faf00;">)</span> <span style="color: #5faf00;">{</span>
+        jj_expentry = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #875f00;">[</span><span style="color: #8700af;">1</span><span style="color: #875f00;">]</span>;
+        jj_expentry<span style="color: #875f00;">[</span><span style="color: #8700af;">0</span><span style="color: #875f00;">]</span> = i;
+        jj_expentries.add<span style="color: #875f00;">(</span>jj_expentry<span style="color: #875f00;">)</span>;
+      <span style="color: #5faf00;">}</span>
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #2aa198;">[][]</span> <span style="color: #af5fd7;">exptokseq</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #2aa198;">[</span>jj_expentries.size<span style="color: #5faf00;">()</span><span style="color: #2aa198;">][]</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; jj_expentries.<span style="color: #af005f; font-weight: bold;">size</span><span style="color: #5faf00;">()</span>; i++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      exptokseq<span style="color: #5faf00;">[</span>i<span style="color: #5faf00;">]</span> = jj_expentries.get<span style="color: #5faf00;">(</span>i<span style="color: #5faf00;">)</span>;
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">ParseException</span><span style="color: #2aa198;">(</span>token, exptokseq, tokenImage<span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Enable tracing. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">enable_tracing</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Disable tracing. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">disable_tracing</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+  <span style="color: #8700af;">}</span>
+
+<span style="color: #268bd2;">}</span>
+</pre>
+</div></li>
+</ul></li>
+
+<li><p>
+left factored grammar for fn
+</p>
+
+<pre class="example">
+expr := abs rapp | var rapp | n rapp
+rapp := '(' expr ')' rapp | e'
+abs  := fn '(' id ')' '{' expr '}'
+var  := [a-z]([a-z0-9])*
+n    := [1-9]([0-9])*
+</pre></li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-2">
+<h2 id="orgheadline3"><span class="section-number-2">3</span> JTB</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li><p>
+install
+</p>
+
+<p>
+<a href="http://compilers.cs.ucla.edu/jtb/">http://compilers.cs.ucla.edu/jtb/</a>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-bash">wget http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
+<span style="color: #008787; background-color: #ffffff;"># </span><span style="color: #008787; background-color: #ffffff;">or</span>
+curl -O http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
+</pre>
+</div></li>
+
+<li><p>
+example use
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-bash"><span style="color: #008787; background-color: #ffffff;">#</span><span style="color: #008787; background-color: #ffffff;">!/bin/</span><span style="color: #268bd2; font-weight: bold;">bash</span>
+
+<span style="color: #af5fd7;">javacc_opts</span>=<span style="color: #2aa198;">"-output_directory=parser "</span>
+
+<span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #268bd2;">[</span> <span style="color: #2aa198;">"$1"</span> == <span style="color: #2aa198;">"jtb"</span> <span style="color: #268bd2;">]</span>; <span style="color: #268bd2; font-weight: bold;">then</span>
+  <span style="color: #268bd2;">echo</span> <span style="color: #2aa198;">"==&gt; Running javacc with JTB output ..."</span>
+  <span style="color: #268bd2;">cd</span> parser
+  java -jar ../../bin/jtb132.jar ../fn.jj -o jtb.out.jj
+  <span style="color: #268bd2;">cd</span> -
+
+  <span style="color: #268bd2;">echo</span> <span style="color: #2aa198;">"==&gt; Running javacc with JTB output ..."</span>
+  javacc $<span style="color: #af5fd7;">javacc_opts</span> parser/jtb.out.jj
+
+<span style="color: #268bd2; font-weight: bold;">else</span>
+  javacc $<span style="color: #af5fd7;">javacc_opts</span> fn-semantic.jj
+<span style="color: #268bd2; font-weight: bold;">fi</span>
+
+javac -classpath .:parser Parse.java
+</pre>
+</div>
+
+<p>
+Focus on the <code>then</code> branch (runs JTB)
+</p></li>
+
+<li>What is JTB?
+
+<ul class="org-ul">
+<li><p>
+javacc definition with types
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-javacc">PARSER_BEGIN(Fn)
+package parser;
+
+import parser.Fn;
+
+public class Fn {}
+PARSER_END(Fn)
+
+SKIP :
+{ " "
+| "\t"
+| "\n"
+/* single line comments */
+| &lt;"#" (~["\n","\r"])* ("\n" | "\r" | "\r\n")&gt;
+}
+
+TOKEN:
+{ &lt; FN: "fn" &gt;
+| &lt; LPAREN: "(" &gt;
+| &lt; RPAREN: ")" &gt;
+| &lt; LCURLY: "{" &gt;
+| &lt; RCURLY: "}" &gt;
+| &lt; TINT: "int" &gt;
+| &lt; VAR: ["a"-"z"](["a"-"z"] | ["0"-"9"])* &gt;
+| &lt; ARROW: "-&gt;" &gt;
+| &lt; N: ["1"-"9"](["0"-"9"])* &gt;
+}
+
+void Prog() :
+{}
+{ Expr() &lt;EOF&gt; }
+
+void Expr() :
+{}
+{ Abs() RApp()
+| Var() RApp()
+| Int()
+}
+
+void Abs() :
+{}
+{
+  &lt;FN&gt; "(" RType() &lt;VAR&gt; RParam() ")" "{" Expr() "}"
+}
+
+void RParam():
+{}
+{ ( "," RType() &lt;VAR&gt; RParam() )? }
+
+void RApp() :
+{}
+{ ( "(" Expr() RArg() ")" RApp() )? }
+
+void RArg():
+{}
+{ ("," Expr() RArg())? }
+
+void RType() :
+{}
+{ TInt() ( &lt;ARROW&gt; RType() )? }
+
+void Var() :
+{}
+{ &lt;VAR&gt; }
+
+void Int() :
+{}
+{ &lt;N&gt; }
+
+void TInt():
+{}
+{ &lt;TINT&gt; }
+</pre>
+</div></li>
+
+<li><p>
+javacc and jtb output
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #008787; background-color: #ffffff;">/* </span><span style="color: #008787; background-color: #ffffff;">Generated By:JavaCC: Do not edit this line. Fn.java */</span>
+<span style="color: #268bd2; font-weight: bold;">package</span> <span style="color: #8700af;">parser</span>;
+
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">parser</span>.<span style="color: #af005f; font-weight: bold;">Fn</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">syntaxtree</span>.*;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">java</span>.<span style="color: #8700af;">util</span>.<span style="color: #af005f; font-weight: bold;">Vector</span>;
+
+
+<span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">Fn</span> <span style="color: #268bd2; font-weight: bold;">implements</span> <span style="color: #af005f; font-weight: bold;">FnConstants</span> <span style="color: #268bd2;">{</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Prog</span> <span style="color: #8700af; font-weight: bold;">Prog</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+   <span style="color: #af005f; font-weight: bold;">Expr</span> <span style="color: #af5fd7;">n0</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n1</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n2</span>;
+    n0 = Expr<span style="color: #2aa198;">()</span>;
+    n2 = jj_consume_token<span style="color: #2aa198;">(</span><span style="color: #8700af;">0</span><span style="color: #2aa198;">)</span>;
+      n2.beginColumn++; n2.endColumn++;
+      n1 = JTBToolkit.makeNodeToken<span style="color: #2aa198;">(</span>n2<span style="color: #2aa198;">)</span>;
+     <span style="color: #2aa198;">{</span><span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span><span style="color: #8700af;">true</span><span style="color: #5faf00;">)</span> <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Prog</span><span style="color: #5faf00;">(</span>n0,n1<span style="color: #5faf00;">)</span>;<span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"Missing return statement in function"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Expr</span> <span style="color: #8700af; font-weight: bold;">Expr</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+   <span style="color: #af005f; font-weight: bold;">NodeChoice</span> <span style="color: #af5fd7;">n0</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeSequence</span> <span style="color: #af5fd7;">n1</span>;
+   <span style="color: #af005f; font-weight: bold;">Abs</span> <span style="color: #af5fd7;">n2</span>;
+   <span style="color: #af005f; font-weight: bold;">RApp</span> <span style="color: #af5fd7;">n3</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeSequence</span> <span style="color: #af5fd7;">n4</span>;
+   <span style="color: #af005f; font-weight: bold;">Var</span> <span style="color: #af5fd7;">n5</span>;
+   <span style="color: #af005f; font-weight: bold;">RApp</span> <span style="color: #af5fd7;">n6</span>;
+   <span style="color: #af005f; font-weight: bold;">Int</span> <span style="color: #af5fd7;">n7</span>;
+    <span style="color: #268bd2; font-weight: bold;">switch</span> <span style="color: #2aa198;">(</span><span style="color: #5faf00;">(</span>jj_ntk==-<span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>?jj_ntk<span style="color: #5faf00;">()</span>:jj_ntk<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">case</span> FN:
+        n1 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeSequence</span><span style="color: #5faf00;">(</span><span style="color: #8700af;">2</span><span style="color: #5faf00;">)</span>;
+      n2 = Abs<span style="color: #5faf00;">()</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n2<span style="color: #5faf00;">)</span>;
+      n3 = RApp<span style="color: #5faf00;">()</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n3<span style="color: #5faf00;">)</span>;
+        n0 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeChoice</span><span style="color: #5faf00;">(</span>n1, <span style="color: #8700af;">0</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">break</span>;
+    <span style="color: #268bd2; font-weight: bold;">case</span> VAR:
+        n4 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeSequence</span><span style="color: #5faf00;">(</span><span style="color: #8700af;">2</span><span style="color: #5faf00;">)</span>;
+      n5 = Var<span style="color: #5faf00;">()</span>;
+        n4.addNode<span style="color: #5faf00;">(</span>n5<span style="color: #5faf00;">)</span>;
+      n6 = RApp<span style="color: #5faf00;">()</span>;
+        n4.addNode<span style="color: #5faf00;">(</span>n6<span style="color: #5faf00;">)</span>;
+        n0 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeChoice</span><span style="color: #5faf00;">(</span>n4, <span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">break</span>;
+    <span style="color: #268bd2; font-weight: bold;">case</span> N:
+      n7 = Int<span style="color: #5faf00;">()</span>;
+        n0 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeChoice</span><span style="color: #5faf00;">(</span>n7, <span style="color: #8700af;">2</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">break</span>;
+    <span style="color: #268bd2; font-weight: bold;">default</span>:
+      jj_la1<span style="color: #5faf00;">[</span><span style="color: #8700af;">0</span><span style="color: #5faf00;">]</span> = jj_gen;
+      jj_consume_token<span style="color: #5faf00;">(</span>-<span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">ParseException</span><span style="color: #5faf00;">()</span>;
+    <span style="color: #2aa198;">}</span>
+     <span style="color: #2aa198;">{</span><span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span><span style="color: #8700af;">true</span><span style="color: #5faf00;">)</span> <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Expr</span><span style="color: #5faf00;">(</span>n0<span style="color: #5faf00;">)</span>;<span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"Missing return statement in function"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Abs</span> <span style="color: #8700af; font-weight: bold;">Abs</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n0</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n1</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n2</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n3</span>;
+   <span style="color: #af005f; font-weight: bold;">RType</span> <span style="color: #af5fd7;">n4</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n5</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n6</span>;
+   <span style="color: #af005f; font-weight: bold;">RParam</span> <span style="color: #af5fd7;">n7</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n8</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n9</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n10</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n11</span>;
+   <span style="color: #af005f; font-weight: bold;">Expr</span> <span style="color: #af5fd7;">n12</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n13</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n14</span>;
+    n1 = jj_consume_token<span style="color: #2aa198;">(</span>FN<span style="color: #2aa198;">)</span>;
+             n0 = JTBToolkit.makeNodeToken<span style="color: #2aa198;">(</span>n1<span style="color: #2aa198;">)</span>;
+    n3 = jj_consume_token<span style="color: #2aa198;">(</span>LPAREN<span style="color: #2aa198;">)</span>;
+            n2 = JTBToolkit.makeNodeToken<span style="color: #2aa198;">(</span>n3<span style="color: #2aa198;">)</span>;
+    n4 = RType<span style="color: #2aa198;">()</span>;
+    n6 = jj_consume_token<span style="color: #2aa198;">(</span>VAR<span style="color: #2aa198;">)</span>;
+              n5 = JTBToolkit.makeNodeToken<span style="color: #2aa198;">(</span>n6<span style="color: #2aa198;">)</span>;
+    n7 = RParam<span style="color: #2aa198;">()</span>;
+    n9 = jj_consume_token<span style="color: #2aa198;">(</span>RPAREN<span style="color: #2aa198;">)</span>;
+            n8 = JTBToolkit.makeNodeToken<span style="color: #2aa198;">(</span>n9<span style="color: #2aa198;">)</span>;
+    n11 = jj_consume_token<span style="color: #2aa198;">(</span>LCURLY<span style="color: #2aa198;">)</span>;
+             n10 = JTBToolkit.makeNodeToken<span style="color: #2aa198;">(</span>n11<span style="color: #2aa198;">)</span>;
+    n12 = Expr<span style="color: #2aa198;">()</span>;
+    n14 = jj_consume_token<span style="color: #2aa198;">(</span>RCURLY<span style="color: #2aa198;">)</span>;
+             n13 = JTBToolkit.makeNodeToken<span style="color: #2aa198;">(</span>n14<span style="color: #2aa198;">)</span>;
+     <span style="color: #2aa198;">{</span><span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span><span style="color: #8700af;">true</span><span style="color: #5faf00;">)</span> <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Abs</span><span style="color: #5faf00;">(</span>n0,n2,n4,n5,n7,n8,n10,n12,n13<span style="color: #5faf00;">)</span>;<span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"Missing return statement in function"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">RParam</span> <span style="color: #8700af; font-weight: bold;">RParam</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+   <span style="color: #af005f; font-weight: bold;">NodeOptional</span> <span style="color: #af5fd7;">n0</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeOptional</span><span style="color: #2aa198;">()</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeSequence</span> <span style="color: #af5fd7;">n1</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n2</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n3</span>;
+   <span style="color: #af005f; font-weight: bold;">RType</span> <span style="color: #af5fd7;">n4</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n5</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n6</span>;
+   <span style="color: #af005f; font-weight: bold;">RParam</span> <span style="color: #af5fd7;">n7</span>;
+    <span style="color: #268bd2; font-weight: bold;">switch</span> <span style="color: #2aa198;">(</span><span style="color: #5faf00;">(</span>jj_ntk==-<span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>?jj_ntk<span style="color: #5faf00;">()</span>:jj_ntk<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">case</span> <span style="color: #8700af;">14</span>:
+        n1 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeSequence</span><span style="color: #5faf00;">(</span><span style="color: #8700af;">4</span><span style="color: #5faf00;">)</span>;
+      n3 = jj_consume_token<span style="color: #5faf00;">(</span><span style="color: #8700af;">14</span><span style="color: #5faf00;">)</span>;
+               n2 = JTBToolkit.makeNodeToken<span style="color: #5faf00;">(</span>n3<span style="color: #5faf00;">)</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n2<span style="color: #5faf00;">)</span>;
+      n4 = RType<span style="color: #5faf00;">()</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n4<span style="color: #5faf00;">)</span>;
+      n6 = jj_consume_token<span style="color: #5faf00;">(</span>VAR<span style="color: #5faf00;">)</span>;
+                 n5 = JTBToolkit.makeNodeToken<span style="color: #5faf00;">(</span>n6<span style="color: #5faf00;">)</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n5<span style="color: #5faf00;">)</span>;
+      n7 = RParam<span style="color: #5faf00;">()</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n7<span style="color: #5faf00;">)</span>;
+        n0.addNode<span style="color: #5faf00;">(</span>n1<span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">break</span>;
+    <span style="color: #268bd2; font-weight: bold;">default</span>:
+      jj_la1<span style="color: #5faf00;">[</span><span style="color: #8700af;">1</span><span style="color: #5faf00;">]</span> = jj_gen;
+      ;
+    <span style="color: #2aa198;">}</span>
+     <span style="color: #2aa198;">{</span><span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span><span style="color: #8700af;">true</span><span style="color: #5faf00;">)</span> <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">RParam</span><span style="color: #5faf00;">(</span>n0<span style="color: #5faf00;">)</span>;<span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"Missing return statement in function"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">RApp</span> <span style="color: #8700af; font-weight: bold;">RApp</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+   <span style="color: #af005f; font-weight: bold;">NodeOptional</span> <span style="color: #af5fd7;">n0</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeOptional</span><span style="color: #2aa198;">()</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeSequence</span> <span style="color: #af5fd7;">n1</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n2</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n3</span>;
+   <span style="color: #af005f; font-weight: bold;">Expr</span> <span style="color: #af5fd7;">n4</span>;
+   <span style="color: #af005f; font-weight: bold;">RArg</span> <span style="color: #af5fd7;">n5</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n6</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n7</span>;
+   <span style="color: #af005f; font-weight: bold;">RApp</span> <span style="color: #af5fd7;">n8</span>;
+    <span style="color: #268bd2; font-weight: bold;">switch</span> <span style="color: #2aa198;">(</span><span style="color: #5faf00;">(</span>jj_ntk==-<span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>?jj_ntk<span style="color: #5faf00;">()</span>:jj_ntk<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">case</span> LPAREN:
+        n1 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeSequence</span><span style="color: #5faf00;">(</span><span style="color: #8700af;">5</span><span style="color: #5faf00;">)</span>;
+      n3 = jj_consume_token<span style="color: #5faf00;">(</span>LPAREN<span style="color: #5faf00;">)</span>;
+               n2 = JTBToolkit.makeNodeToken<span style="color: #5faf00;">(</span>n3<span style="color: #5faf00;">)</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n2<span style="color: #5faf00;">)</span>;
+      n4 = Expr<span style="color: #5faf00;">()</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n4<span style="color: #5faf00;">)</span>;
+      n5 = RArg<span style="color: #5faf00;">()</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n5<span style="color: #5faf00;">)</span>;
+      n7 = jj_consume_token<span style="color: #5faf00;">(</span>RPAREN<span style="color: #5faf00;">)</span>;
+               n6 = JTBToolkit.makeNodeToken<span style="color: #5faf00;">(</span>n7<span style="color: #5faf00;">)</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n6<span style="color: #5faf00;">)</span>;
+      n8 = RApp<span style="color: #5faf00;">()</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n8<span style="color: #5faf00;">)</span>;
+        n0.addNode<span style="color: #5faf00;">(</span>n1<span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">break</span>;
+    <span style="color: #268bd2; font-weight: bold;">default</span>:
+      jj_la1<span style="color: #5faf00;">[</span><span style="color: #8700af;">2</span><span style="color: #5faf00;">]</span> = jj_gen;
+      ;
+    <span style="color: #2aa198;">}</span>
+     <span style="color: #2aa198;">{</span><span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span><span style="color: #8700af;">true</span><span style="color: #5faf00;">)</span> <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">RApp</span><span style="color: #5faf00;">(</span>n0<span style="color: #5faf00;">)</span>;<span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"Missing return statement in function"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">RArg</span> <span style="color: #8700af; font-weight: bold;">RArg</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+   <span style="color: #af005f; font-weight: bold;">NodeOptional</span> <span style="color: #af5fd7;">n0</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeOptional</span><span style="color: #2aa198;">()</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeSequence</span> <span style="color: #af5fd7;">n1</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n2</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n3</span>;
+   <span style="color: #af005f; font-weight: bold;">Expr</span> <span style="color: #af5fd7;">n4</span>;
+   <span style="color: #af005f; font-weight: bold;">RArg</span> <span style="color: #af5fd7;">n5</span>;
+    <span style="color: #268bd2; font-weight: bold;">switch</span> <span style="color: #2aa198;">(</span><span style="color: #5faf00;">(</span>jj_ntk==-<span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>?jj_ntk<span style="color: #5faf00;">()</span>:jj_ntk<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">case</span> <span style="color: #8700af;">14</span>:
+        n1 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeSequence</span><span style="color: #5faf00;">(</span><span style="color: #8700af;">3</span><span style="color: #5faf00;">)</span>;
+      n3 = jj_consume_token<span style="color: #5faf00;">(</span><span style="color: #8700af;">14</span><span style="color: #5faf00;">)</span>;
+               n2 = JTBToolkit.makeNodeToken<span style="color: #5faf00;">(</span>n3<span style="color: #5faf00;">)</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n2<span style="color: #5faf00;">)</span>;
+      n4 = Expr<span style="color: #5faf00;">()</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n4<span style="color: #5faf00;">)</span>;
+      n5 = RArg<span style="color: #5faf00;">()</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n5<span style="color: #5faf00;">)</span>;
+        n0.addNode<span style="color: #5faf00;">(</span>n1<span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">break</span>;
+    <span style="color: #268bd2; font-weight: bold;">default</span>:
+      jj_la1<span style="color: #5faf00;">[</span><span style="color: #8700af;">3</span><span style="color: #5faf00;">]</span> = jj_gen;
+      ;
+    <span style="color: #2aa198;">}</span>
+     <span style="color: #2aa198;">{</span><span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span><span style="color: #8700af;">true</span><span style="color: #5faf00;">)</span> <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">RArg</span><span style="color: #5faf00;">(</span>n0<span style="color: #5faf00;">)</span>;<span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"Missing return statement in function"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">RType</span> <span style="color: #8700af; font-weight: bold;">RType</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+   <span style="color: #af005f; font-weight: bold;">TInt</span> <span style="color: #af5fd7;">n0</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeOptional</span> <span style="color: #af5fd7;">n1</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeOptional</span><span style="color: #2aa198;">()</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeSequence</span> <span style="color: #af5fd7;">n2</span>;
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n3</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n4</span>;
+   <span style="color: #af005f; font-weight: bold;">RType</span> <span style="color: #af5fd7;">n5</span>;
+    n0 = TInt<span style="color: #2aa198;">()</span>;
+    <span style="color: #268bd2; font-weight: bold;">switch</span> <span style="color: #2aa198;">(</span><span style="color: #5faf00;">(</span>jj_ntk==-<span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>?jj_ntk<span style="color: #5faf00;">()</span>:jj_ntk<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">case</span> ARROW:
+        n2 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeSequence</span><span style="color: #5faf00;">(</span><span style="color: #8700af;">2</span><span style="color: #5faf00;">)</span>;
+      n4 = jj_consume_token<span style="color: #5faf00;">(</span>ARROW<span style="color: #5faf00;">)</span>;
+                   n3 = JTBToolkit.makeNodeToken<span style="color: #5faf00;">(</span>n4<span style="color: #5faf00;">)</span>;
+        n2.addNode<span style="color: #5faf00;">(</span>n3<span style="color: #5faf00;">)</span>;
+      n5 = RType<span style="color: #5faf00;">()</span>;
+        n2.addNode<span style="color: #5faf00;">(</span>n5<span style="color: #5faf00;">)</span>;
+        n1.addNode<span style="color: #5faf00;">(</span>n2<span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">break</span>;
+    <span style="color: #268bd2; font-weight: bold;">default</span>:
+      jj_la1<span style="color: #5faf00;">[</span><span style="color: #8700af;">4</span><span style="color: #5faf00;">]</span> = jj_gen;
+      ;
+    <span style="color: #2aa198;">}</span>
+     <span style="color: #2aa198;">{</span><span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span><span style="color: #8700af;">true</span><span style="color: #5faf00;">)</span> <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">RType</span><span style="color: #5faf00;">(</span>n0,n1<span style="color: #5faf00;">)</span>;<span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"Missing return statement in function"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Var</span> <span style="color: #8700af; font-weight: bold;">Var</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n0</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n1</span>;
+    n1 = jj_consume_token<span style="color: #2aa198;">(</span>VAR<span style="color: #2aa198;">)</span>;
+              n0 = JTBToolkit.makeNodeToken<span style="color: #2aa198;">(</span>n1<span style="color: #2aa198;">)</span>;
+     <span style="color: #2aa198;">{</span><span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span><span style="color: #8700af;">true</span><span style="color: #5faf00;">)</span> <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Var</span><span style="color: #5faf00;">(</span>n0<span style="color: #5faf00;">)</span>;<span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"Missing return statement in function"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Int</span> <span style="color: #8700af; font-weight: bold;">Int</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n0</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n1</span>;
+    n1 = jj_consume_token<span style="color: #2aa198;">(</span>N<span style="color: #2aa198;">)</span>;
+            n0 = JTBToolkit.makeNodeToken<span style="color: #2aa198;">(</span>n1<span style="color: #2aa198;">)</span>;
+     <span style="color: #2aa198;">{</span><span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span><span style="color: #8700af;">true</span><span style="color: #5faf00;">)</span> <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Int</span><span style="color: #5faf00;">(</span>n0<span style="color: #5faf00;">)</span>;<span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"Missing return statement in function"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">TInt</span> <span style="color: #8700af; font-weight: bold;">TInt</span><span style="color: #8700af;">()</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+   <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n0</span>;
+   <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">n1</span>;
+    n1 = jj_consume_token<span style="color: #2aa198;">(</span>TINT<span style="color: #2aa198;">)</span>;
+               n0 = JTBToolkit.makeNodeToken<span style="color: #2aa198;">(</span>n1<span style="color: #2aa198;">)</span>;
+     <span style="color: #2aa198;">{</span><span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span><span style="color: #8700af;">true</span><span style="color: #5faf00;">)</span> <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">TInt</span><span style="color: #5faf00;">(</span>n0<span style="color: #5faf00;">)</span>;<span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"Missing return statement in function"</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">boolean</span> <span style="color: #af5fd7;">jj_initialized_once</span> = <span style="color: #8700af;">false</span>;
+  <span style="color: #008787;">/** Generated Token Manager. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">FnTokenManager</span> <span style="color: #af5fd7;">token_source</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #af005f; font-weight: bold;">SimpleCharStream</span> <span style="color: #af5fd7;">jj_input_stream</span>;
+  <span style="color: #008787;">/** Current token. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">token</span>;
+  <span style="color: #008787;">/** Next token. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">jj_nt</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">jj_ntk</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">jj_gen</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #8700af;">[]</span> <span style="color: #af5fd7;">jj_la1</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #8700af;">[</span><span style="color: #8700af;">5</span><span style="color: #8700af;">]</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #8700af;">[]</span> <span style="color: #af5fd7;">jj_la1_0</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #8700af;">{</span>
+      jj_la1_init_0<span style="color: #2aa198;">()</span>;
+   <span style="color: #8700af;">}</span>
+   <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">jj_la1_init_0</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+      jj_la1_0 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #2aa198;">{</span><span style="color: #8700af;">0x2820</span>,<span style="color: #8700af;">0x4000</span>,<span style="color: #8700af;">0x40</span>,<span style="color: #8700af;">0x4000</span>,<span style="color: #8700af;">0x1000</span>,<span style="color: #2aa198;">}</span>;
+   <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Constructor with InputStream. */</span>
+  <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af; font-weight: bold;">Fn</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">InputStream</span> <span style="color: #af5fd7;">stream</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+     <span style="color: #268bd2; font-weight: bold;">this</span><span style="color: #2aa198;">(</span>stream, <span style="color: #8700af;">null</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+  <span style="color: #008787;">/** Constructor with InputStream and supplied encoding */</span>
+  <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af; font-weight: bold;">Fn</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">InputStream</span> <span style="color: #af5fd7;">stream</span>, <span style="color: #af005f; font-weight: bold;">String</span> <span style="color: #af5fd7;">encoding</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>jj_initialized_once<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"ERROR: Second call to constructor of static parser.  "</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       You must either use ReInit() or set the JavaCC option STATIC to false"</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       during parser generation."</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #5faf00;">()</span>;
+    <span style="color: #2aa198;">}</span>
+    jj_initialized_once = <span style="color: #8700af;">true</span>;
+    <span style="color: #268bd2; font-weight: bold;">try</span> <span style="color: #2aa198;">{</span> jj_input_stream = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">SimpleCharStream</span><span style="color: #5faf00;">(</span>stream, encoding, <span style="color: #8700af;">1</span>, <span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>; <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">catch</span><span style="color: #2aa198;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">UnsupportedEncodingException</span> <span style="color: #af5fd7;">e</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span> <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">RuntimeException</span><span style="color: #5faf00;">(</span>e<span style="color: #5faf00;">)</span>; <span style="color: #2aa198;">}</span>
+    token_source = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">FnTokenManager</span><span style="color: #2aa198;">(</span>jj_input_stream<span style="color: #2aa198;">)</span>;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">5</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Reinitialise. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">ReInit</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">InputStream</span> <span style="color: #af5fd7;">stream</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+     ReInit<span style="color: #2aa198;">(</span>stream, <span style="color: #8700af;">null</span><span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+  <span style="color: #008787;">/** Reinitialise. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">ReInit</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">InputStream</span> <span style="color: #af5fd7;">stream</span>, <span style="color: #af005f; font-weight: bold;">String</span> <span style="color: #af5fd7;">encoding</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">try</span> <span style="color: #2aa198;">{</span> <span style="color: #8700af;">jj_input_stream</span>.ReInit<span style="color: #5faf00;">(</span>stream, encoding, <span style="color: #8700af;">1</span>, <span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span>; <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">catch</span><span style="color: #2aa198;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">UnsupportedEncodingException</span> <span style="color: #af5fd7;">e</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span> <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">RuntimeException</span><span style="color: #5faf00;">(</span>e<span style="color: #5faf00;">)</span>; <span style="color: #2aa198;">}</span>
+    <span style="color: #8700af;">token_source</span>.ReInit<span style="color: #2aa198;">(</span>jj_input_stream<span style="color: #2aa198;">)</span>;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">5</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Constructor. */</span>
+  <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af; font-weight: bold;">Fn</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">Reader</span> <span style="color: #af5fd7;">stream</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>jj_initialized_once<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"ERROR: Second call to constructor of static parser. "</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       You must either use ReInit() or set the JavaCC option STATIC to false"</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       during parser generation."</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #5faf00;">()</span>;
+    <span style="color: #2aa198;">}</span>
+    jj_initialized_once = <span style="color: #8700af;">true</span>;
+    jj_input_stream = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">SimpleCharStream</span><span style="color: #2aa198;">(</span>stream, <span style="color: #8700af;">1</span>, <span style="color: #8700af;">1</span><span style="color: #2aa198;">)</span>;
+    token_source = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">FnTokenManager</span><span style="color: #2aa198;">(</span>jj_input_stream<span style="color: #2aa198;">)</span>;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">5</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Reinitialise. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">ReInit</span><span style="color: #8700af;">(</span><span style="color: #8700af;">java</span>.<span style="color: #8700af;">io</span>.<span style="color: #af005f; font-weight: bold;">Reader</span> <span style="color: #af5fd7;">stream</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #8700af;">jj_input_stream</span>.ReInit<span style="color: #2aa198;">(</span>stream, <span style="color: #8700af;">1</span>, <span style="color: #8700af;">1</span><span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">token_source</span>.ReInit<span style="color: #2aa198;">(</span>jj_input_stream<span style="color: #2aa198;">)</span>;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">5</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Constructor with generated Token Manager. */</span>
+  <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af; font-weight: bold;">Fn</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">FnTokenManager</span> <span style="color: #af5fd7;">tm</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>jj_initialized_once<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"ERROR: Second call to constructor of static parser. "</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       You must either use ReInit() or set the JavaCC option STATIC to false"</span><span style="color: #5faf00;">)</span>;
+      System.out.println<span style="color: #5faf00;">(</span><span style="color: #2aa198;">"       during parser generation."</span><span style="color: #5faf00;">)</span>;
+      <span style="color: #268bd2; font-weight: bold;">throw</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Error</span><span style="color: #5faf00;">()</span>;
+    <span style="color: #2aa198;">}</span>
+    jj_initialized_once = <span style="color: #8700af;">true</span>;
+    token_source = tm;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">5</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Reinitialise. */</span>
+  <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">ReInit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">FnTokenManager</span> <span style="color: #af5fd7;">tm</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    token_source = tm;
+    token = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Token</span><span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen = <span style="color: #8700af;">0</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">5</span>; i++<span style="color: #2aa198;">)</span> jj_la1<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = -<span style="color: #8700af;">1</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #8700af; font-weight: bold;">jj_consume_token</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">kind</span><span style="color: #8700af;">)</span> <span style="color: #268bd2; font-weight: bold;">throws</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af;">{</span>
+    <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">oldToken</span>;
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span><span style="color: #5faf00;">(</span>oldToken = token<span style="color: #5faf00;">)</span>.next != <span style="color: #8700af;">null</span><span style="color: #2aa198;">)</span> token = token.next;
+    <span style="color: #268bd2; font-weight: bold;">else</span> token = token.next = token_source.getNextToken<span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>token.kind == kind<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      jj_gen++;
+      <span style="color: #268bd2; font-weight: bold;">return</span> token;
+    <span style="color: #2aa198;">}</span>
+    token = oldToken;
+    jj_kind = kind;
+    <span style="color: #268bd2; font-weight: bold;">throw</span> generateParseException<span style="color: #2aa198;">()</span>;
+  <span style="color: #8700af;">}</span>
+
+
+<span style="color: #008787;">/** Get the next Token. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #8700af; font-weight: bold;">getNextToken</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>token.next != <span style="color: #8700af;">null</span><span style="color: #2aa198;">)</span> token = token.next;
+    <span style="color: #268bd2; font-weight: bold;">else</span> token = token.next = token_source.getNextToken<span style="color: #2aa198;">()</span>;
+    jj_ntk = -<span style="color: #8700af;">1</span>;
+    jj_gen++;
+    <span style="color: #268bd2; font-weight: bold;">return</span> token;
+  <span style="color: #8700af;">}</span>
+
+<span style="color: #008787;">/** Get the specific Token. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #8700af; font-weight: bold;">getToken</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">index</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+    <span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">t</span> = token;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #af005f; font-weight: bold;">index</span>; i++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span>t.next != <span style="color: #8700af;">null</span><span style="color: #5faf00;">)</span> t = t.next;
+      <span style="color: #268bd2; font-weight: bold;">else</span> t = t.next = token_source.getNextToken<span style="color: #5faf00;">()</span>;
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">return</span> t;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #8700af; font-weight: bold;">jj_ntk</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span><span style="color: #5faf00;">(</span>jj_nt=token.next<span style="color: #5faf00;">)</span> == <span style="color: #8700af;">null</span><span style="color: #2aa198;">)</span>
+      <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #2aa198;">(</span>jj_ntk = <span style="color: #5faf00;">(</span>token.next=token_source.getNextToken<span style="color: #875f00;">()</span><span style="color: #5faf00;">)</span>.kind<span style="color: #2aa198;">)</span>;
+    <span style="color: #268bd2; font-weight: bold;">else</span>
+      <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #2aa198;">(</span>jj_ntk = jj_nt.kind<span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #8700af;">java</span>.<span style="color: #8700af;">util</span>.<span style="color: #af005f; font-weight: bold;">List</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">int</span><span style="color: #2aa198;">[]</span><span style="color: #8700af;">&gt;</span> <span style="color: #af5fd7;">jj_expentries</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #8700af;">java</span>.<span style="color: #8700af;">util</span>.<span style="color: #af005f; font-weight: bold;">ArrayList</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">int</span><span style="color: #2aa198;">[]</span><span style="color: #8700af;">&gt;()</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #8700af;">[]</span> <span style="color: #af5fd7;">jj_expentry</span>;
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">jj_kind</span> = -<span style="color: #8700af;">1</span>;
+
+  <span style="color: #008787;">/** Generate ParseException. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #8700af; font-weight: bold;">generateParseException</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+    jj_expentries.clear<span style="color: #2aa198;">()</span>;
+    <span style="color: #af005f; font-weight: bold;">boolean</span><span style="color: #2aa198;">[]</span> <span style="color: #af5fd7;">la1tokens</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">boolean</span><span style="color: #2aa198;">[</span><span style="color: #8700af;">15</span><span style="color: #2aa198;">]</span>;
+    <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>jj_kind &gt;= <span style="color: #8700af;">0</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      la1tokens<span style="color: #5faf00;">[</span>jj_kind<span style="color: #5faf00;">]</span> = <span style="color: #8700af;">true</span>;
+      jj_kind = -<span style="color: #8700af;">1</span>;
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">5</span>; i++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span>jj_la1<span style="color: #875f00;">[</span>i<span style="color: #875f00;">]</span> == jj_gen<span style="color: #5faf00;">)</span> <span style="color: #5faf00;">{</span>
+        <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #875f00;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">j</span> = <span style="color: #8700af;">0</span>; j &lt; <span style="color: #8700af;">32</span>; j++<span style="color: #875f00;">)</span> <span style="color: #875f00;">{</span>
+          <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #268bd2;">(</span><span style="color: #8700af;">(</span>jj_la1_0<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> &amp; <span style="color: #2aa198;">(</span><span style="color: #8700af;">1</span>&lt;&lt;j<span style="color: #2aa198;">)</span><span style="color: #8700af;">)</span> != <span style="color: #8700af;">0</span><span style="color: #268bd2;">)</span> <span style="color: #268bd2;">{</span>
+            la1tokens<span style="color: #8700af;">[</span>j<span style="color: #8700af;">]</span> = <span style="color: #8700af;">true</span>;
+          <span style="color: #268bd2;">}</span>
+        <span style="color: #875f00;">}</span>
+      <span style="color: #5faf00;">}</span>
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; <span style="color: #8700af;">15</span>; i++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span>la1tokens<span style="color: #875f00;">[</span>i<span style="color: #875f00;">]</span><span style="color: #5faf00;">)</span> <span style="color: #5faf00;">{</span>
+        jj_expentry = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #875f00;">[</span><span style="color: #8700af;">1</span><span style="color: #875f00;">]</span>;
+        jj_expentry<span style="color: #875f00;">[</span><span style="color: #8700af;">0</span><span style="color: #875f00;">]</span> = i;
+        jj_expentries.add<span style="color: #875f00;">(</span>jj_expentry<span style="color: #875f00;">)</span>;
+      <span style="color: #5faf00;">}</span>
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #2aa198;">[][]</span> <span style="color: #af5fd7;">exptokseq</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #2aa198;">[</span>jj_expentries.size<span style="color: #5faf00;">()</span><span style="color: #2aa198;">][]</span>;
+    <span style="color: #268bd2; font-weight: bold;">for</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">i</span> = <span style="color: #8700af;">0</span>; i &lt; jj_expentries.<span style="color: #af005f; font-weight: bold;">size</span><span style="color: #5faf00;">()</span>; i++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+      exptokseq<span style="color: #5faf00;">[</span>i<span style="color: #5faf00;">]</span> = jj_expentries.get<span style="color: #5faf00;">(</span>i<span style="color: #5faf00;">)</span>;
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">ParseException</span><span style="color: #2aa198;">(</span>token, exptokseq, tokenImage<span style="color: #2aa198;">)</span>;
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Enable tracing. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">enable_tracing</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+  <span style="color: #8700af;">}</span>
+
+  <span style="color: #008787;">/** Disable tracing. */</span>
+  <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #268bd2; font-weight: bold;">final</span> <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">disable_tracing</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+  <span style="color: #8700af;">}</span>
+
+<span style="color: #268bd2;">}</span>
+
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">JTBToolkit</span> <span style="color: #268bd2;">{</span>
+   <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #8700af; font-weight: bold;">makeNodeToken</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">Token</span> <span style="color: #af5fd7;">t</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+      <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span><span style="color: #2aa198;">(</span>t.image.intern<span style="color: #5faf00;">()</span>, t.kind, t.beginLine, t.beginColumn, t.endLine, t.endColumn<span style="color: #2aa198;">)</span>;
+   <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
+</pre>
+</div></li>
+</ul></li>
+
+<li>How does JTB work? 
+<ul class="org-ul">
+<li><p>
+Semantic actions/objects for creating an AST
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-javacc">//
+// Generated by JTB 1.3.2
+//
+
+
+
+PARSER_BEGIN(Fn)
+package parser;
+
+import parser.Fn;
+import syntaxtree.*;
+import java.util.Vector;
+
+
+public class Fn 
+{
+}
+
+class JTBToolkit {
+   static NodeToken makeNodeToken(Token t) {
+      return new NodeToken(t.image.intern(), t.kind, t.beginLine, t.beginColumn, t.endLine, t.endColumn);
+   }
+}
+
+
+PARSER_END(Fn)
+
+SKIP :
+{
+   " "
+   | "\t"
+   | "\n"
+   | &lt;"#" (~["\n", "\r"])* ("\n" | "\r" | "\r\n")&gt;
+}
+
+TOKEN :
+{
+   &lt;FN: "fn"&gt;
+   | &lt;LPAREN: "("&gt;
+   | &lt;RPAREN: ")"&gt;
+   | &lt;LCURLY: "{"&gt;
+   | &lt;RCURLY: "}"&gt;
+   | &lt;TINT: "int"&gt;
+   | &lt;VAR: ["a"-"z"] (["a"-"z"] | ["0"-"9"])*&gt;
+   | &lt;ARROW: "-&gt;"&gt;
+   | &lt;N: ["1"-"9"] (["0"-"9"])*&gt;
+}
+
+Prog Prog() :
+{
+   Expr n0;
+   NodeToken n1;
+   Token n2;
+
+
+}
+{
+   n0=Expr()
+   n2=&lt;EOF&gt; { 
+      n2.beginColumn++; n2.endColumn++;
+      n1 = JTBToolkit.makeNodeToken(n2);
+   }
+
+   { return new Prog(n0,n1); }
+}
+
+Expr Expr() :
+{
+   NodeChoice n0;
+   NodeSequence n1;
+   Abs n2;
+   RApp n3;
+   NodeSequence n4;
+   Var n5;
+   RApp n6;
+   Int n7;
+
+
+}
+{
+   (
+      { n1 = new NodeSequence(2); }
+      n2=Abs()
+      { n1.addNode(n2); }
+      n3=RApp()
+      { n1.addNode(n3); }
+      { n0 = new NodeChoice(n1, 0); }
+   |
+      { n4 = new NodeSequence(2); }
+      n5=Var()
+      { n4.addNode(n5); }
+      n6=RApp()
+      { n4.addNode(n6); }
+      { n0 = new NodeChoice(n4, 1); }
+   |
+      n7=Int()
+      { n0 = new NodeChoice(n7, 2); }
+   )
+
+   { return new Expr(n0); }
+}
+
+Abs Abs() :
+{
+   NodeToken n0;
+   Token n1;
+   NodeToken n2;
+   Token n3;
+   RType n4;
+   NodeToken n5;
+   Token n6;
+   RParam n7;
+   NodeToken n8;
+   Token n9;
+   NodeToken n10;
+   Token n11;
+   Expr n12;
+   NodeToken n13;
+   Token n14;
+
+
+}
+{
+   n1=&lt;FN&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
+   n3="(" { n2 = JTBToolkit.makeNodeToken(n3); }
+   n4=RType()
+   n6=&lt;VAR&gt; { n5 = JTBToolkit.makeNodeToken(n6); }
+   n7=RParam()
+   n9=")" { n8 = JTBToolkit.makeNodeToken(n9); }
+   n11="{" { n10 = JTBToolkit.makeNodeToken(n11); }
+   n12=Expr()
+   n14="}" { n13 = JTBToolkit.makeNodeToken(n14); }
+
+   { return new Abs(n0,n2,n4,n5,n7,n8,n10,n12,n13); }
+}
+
+RParam RParam() :
+{
+   NodeOptional n0 = new NodeOptional();
+   NodeSequence n1;
+   NodeToken n2;
+   Token n3;
+   RType n4;
+   NodeToken n5;
+   Token n6;
+   RParam n7;
+
+
+}
+{
+   (
+      { n1 = new NodeSequence(4); }
+      n3="," { n2 = JTBToolkit.makeNodeToken(n3); }
+      { n1.addNode(n2); }
+      n4=RType()
+      { n1.addNode(n4); }
+      n6=&lt;VAR&gt; { n5 = JTBToolkit.makeNodeToken(n6); }
+      { n1.addNode(n5); }
+      n7=RParam()
+      { n1.addNode(n7); }
+      { n0.addNode(n1); }
+   )?
+
+   { return new RParam(n0); }
+}
+
+RApp RApp() :
+{
+   NodeOptional n0 = new NodeOptional();
+   NodeSequence n1;
+   NodeToken n2;
+   Token n3;
+   Expr n4;
+   RArg n5;
+   NodeToken n6;
+   Token n7;
+   RApp n8;
+
+
+}
+{
+   (
+      { n1 = new NodeSequence(5); }
+      n3="(" { n2 = JTBToolkit.makeNodeToken(n3); }
+      { n1.addNode(n2); }
+      n4=Expr()
+      { n1.addNode(n4); }
+      n5=RArg()
+      { n1.addNode(n5); }
+      n7=")" { n6 = JTBToolkit.makeNodeToken(n7); }
+      { n1.addNode(n6); }
+      n8=RApp()
+      { n1.addNode(n8); }
+      { n0.addNode(n1); }
+   )?
+
+   { return new RApp(n0); }
+}
+
+RArg RArg() :
+{
+   NodeOptional n0 = new NodeOptional();
+   NodeSequence n1;
+   NodeToken n2;
+   Token n3;
+   Expr n4;
+   RArg n5;
+
+
+}
+{
+   (
+      { n1 = new NodeSequence(3); }
+      n3="," { n2 = JTBToolkit.makeNodeToken(n3); }
+      { n1.addNode(n2); }
+      n4=Expr()
+      { n1.addNode(n4); }
+      n5=RArg()
+      { n1.addNode(n5); }
+      { n0.addNode(n1); }
+   )?
+
+   { return new RArg(n0); }
+}
+
+RType RType() :
+{
+   TInt n0;
+   NodeOptional n1 = new NodeOptional();
+   NodeSequence n2;
+   NodeToken n3;
+   Token n4;
+   RType n5;
+
+
+}
+{
+   n0=TInt()
+   (
+      { n2 = new NodeSequence(2); }
+      n4=&lt;ARROW&gt; { n3 = JTBToolkit.makeNodeToken(n4); }
+      { n2.addNode(n3); }
+      n5=RType()
+      { n2.addNode(n5); }
+      { n1.addNode(n2); }
+   )?
+
+   { return new RType(n0,n1); }
+}
+
+Var Var() :
+{
+   NodeToken n0;
+   Token n1;
+
+
+}
+{
+   n1=&lt;VAR&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
+
+   { return new Var(n0); }
+}
+
+Int Int() :
+{
+   NodeToken n0;
+   Token n1;
+
+
+}
+{
+   n1=&lt;N&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
+
+   { return new Int(n0); }
+}
+
+TInt TInt() :
+{
+   NodeToken n0;
+   Token n1;
+
+
+}
+{
+   n1=&lt;TINT&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
+
+   { return new TInt(n0); }
+}
+</pre>
+</div></li>
+
+<li>Visitor classes to subclass for implementation
+<ul class="org-ul">
+<li>e.g., <code>GJDepthFirst</code>, <code>DepthFirstVisitor</code></li>
+</ul></li>
+</ul></li>
+
+<li>What does "GJ" stand for? 
+<ul class="org-ul">
+<li><p>
+Why do we care?
+</p>
+<ul class="org-ul">
+<li>The visitor super class can be parameterized over an argument and
+return type for each <code>accept/visit</code> method.
+<ul class="org-ul">
+<li>recall the type rules!</li>
+</ul></li>
+<li>Normal visitor relies entirely on side effects <code>void</code> return type and no
+arguments.</li>
+<li>In our case pass down a type environment, return expression/statement type</li>
+</ul>
+<div class="org-src-container">
+
+<pre class="src src-java">...
+<span style="color: #008787;">/**</span>
+<span style="color: #008787;"> * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;FN&gt;</span>
+<span style="color: #008787;"> * f1 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "("</span>
+<span style="color: #008787;"> * f2 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RType()</span>
+<span style="color: #008787;"> * f3 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;VAR&gt;</span>
+<span style="color: #008787;"> * f4 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> ")"</span>
+<span style="color: #008787;"> * f5 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "{"</span>
+<span style="color: #008787;"> * f6 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> Expr()</span>
+<span style="color: #008787;"> * f7 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "}"</span>
+<span style="color: #008787;"> */</span>
+<span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #268bd2;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #268bd2;">&gt;</span> visit<span style="color: #268bd2;">(</span><span style="color: #af005f; font-weight: bold;">Abs</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #268bd2;">){</span>
+    <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">get the type of the parameter</span>
+    <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #af5fd7;">paramTypes</span> = n.f2.accept<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #8700af;">)</span>;
+    <span style="color: #af005f; font-weight: bold;">Type</span> <span style="color: #af5fd7;">paramType</span>  = paramTypes.elementAt<span style="color: #8700af;">(</span><span style="color: #8700af;">0</span><span style="color: #8700af;">)</span>;
+
+    <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">add param id and type to the type environment (mapping)</span>
+    env.put<span style="color: #8700af;">(</span>n.f3.toString<span style="color: #2aa198;">()</span>, paramType<span style="color: #8700af;">)</span>;
+
+    <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">using the new environment get the type of the expression</span>
+    <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #af5fd7;">exprTypes</span> = n.f6.accept<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #8700af;">)</span>;
+    <span style="color: #af005f; font-weight: bold;">Type</span> <span style="color: #af5fd7;">exprType</span> = exprTypes.elementAt<span style="color: #8700af;">(</span><span style="color: #8700af;">0</span><span style="color: #8700af;">)</span>;
+
+    <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">construct the arrow type for the abstraction</span>
+    <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">(</span>paramType, exprType<span style="color: #2aa198;">)</span><span style="color: #8700af;">)</span>;
+<span style="color: #268bd2;">}</span>
+...
+</pre>
+</div></li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-2">
+<h2 id="orgheadline4"><span class="section-number-2">4</span> Parsing expression grammars</h2>
+<div class="outline-text-2" id="text-4">
+<ul class="org-ul">
+<li><p>
+Deterministic choice
+</p>
+
+<p>
+The choice operator becomes deterministic, proceeding left to right:
+</p>
+
+<pre class="example">
+A -&gt; B | C | D 
+...
+</pre></li>
+
+<li>Can you write a context free grammar for <code>a^nb^nc^n</code>?
+<ul class="org-ul">
+<li>you can with a Parsing Expression Grammar!</li>
+<li>There are ostensibly CFG's that can't be written as a PEG</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: John Bender</p>
+<p class="date">Created: 2016-04-11 Mon 14:38</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

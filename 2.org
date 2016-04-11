@@ -226,122 +226,122 @@ T |- e1(e2) : t2
 - How do we know that this type system is sound?
   - proofs, requires semantics
 
-# * javacc
-# - install
+* javacc
+- install
 
-#   Use ~lnxsrv04~
+  Use ~lnxsrv04~
 
-# - grammar
-#   - domain specific language for generating Java parsers
+- grammar
+  - domain specific language for generating Java parsers
 
-#   - left recursive grammar for fn
+  - left recursive grammar for fn
 
-#     #+begin_example
-#     expr := abs | app | var | n
-#     app  := expr '(' expr ')'
-#     abs  := fn '(' id ')' '{' expr '}'
-#     var  := [a-z]([a-z0-9])*
-#     n    := [1-9]([0-9])*
-#     #+end_example
+    #+begin_example
+    expr := abs | app | var | n
+    app  := expr '(' expr ')'
+    abs  := fn '(' id ')' '{' expr '}'
+    var  := [a-z]([a-z0-9])*
+    n    := [1-9]([0-9])*
+    #+end_example
     
-#   - Why is it left-recursive?
+  - Why is it left-recursive?
 
-#   - javacc definition 
-#     #+include: ../../fn/fn-lr.jj 
+  - javacc definition 
+    #+include: ../../fn/fn-lr.jj 
 
-#   - javacc semantic actions
-#     #+include: ../../fn/fn-semantic.jj 
+  - javacc semantic actions
+    #+include: ../../fn/fn-semantic.jj 
 
-#     - javacc output
-#       #+include: ../../fn/parser/Fn-simple.java src java
+    - javacc output
+      #+include: ../../fn/parser/Fn-simple.java src java
 
-#   - left factored grammar for fn
+  - left factored grammar for fn
 
-#     #+begin_example
-#     expr := abs rapp | var rapp | n rapp
-#     rapp := '(' expr ')' rapp | e'
-#     abs  := fn '(' id ')' '{' expr '}'
-#     var  := [a-z]([a-z0-9])*
-#     n    := [1-9]([0-9])*
-#     #+end_example
+    #+begin_example
+    expr := abs rapp | var rapp | n rapp
+    rapp := '(' expr ')' rapp | e'
+    abs  := fn '(' id ')' '{' expr '}'
+    var  := [a-z]([a-z0-9])*
+    n    := [1-9]([0-9])*
+    #+end_example
 
-# * JTB
+* JTB
 
-# - install
+- install
 
-#   http://compilers.cs.ucla.edu/jtb/
+  http://compilers.cs.ucla.edu/jtb/
 
-#   #+begin_src bash
-#   wget http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
-#   # or
-#   curl -O http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
-#   #+end_src
+  #+begin_src bash
+  wget http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
+  # or
+  curl -O http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
+  #+end_src
 
-# - What is JTB?
+- What is JTB?
 
-#   - javacc definition 
-#     #+include: ../../fn/fn.jj 
+  - javacc definition 
+    #+include: ../../fn/fn.jj 
 
-#   - javacc + jtb output
-#     #+include: ../../fn/parser/Fn.java src java
+  - javacc + jtb output
+    #+include: ../../fn/parser/Fn.java src java
 
-# - How does JTB work? 
-#   - Semantic actions/objects for creating an AST
-#     #+include: ../../fn/parser/jtb.out.jj
+- How does JTB work? 
+  - Semantic actions/objects for creating an AST
+    #+include: ../../fn/parser/jtb.out.jj
 
-#   - Visitor classes to subclass for implementation
-#     - e.g., ~GJDepthFirst~, ~DepthFirstVisitor~
+  - Visitor classes to subclass for implementation
+    - e.g., ~GJDepthFirst~, ~DepthFirstVisitor~
 
-# - What does "GJ" stand for? 
-#   - Why do we care?
-#     - The visitor super class can be parameterized over an argument and
-#       return type for each ~accept/visit~ method.
-#       - recall the type rules!
-#     - Normal visitor relies entirely on side effects ~void~ return type and no
-#       arguments.
-#     - In our case pass down a type environment, return expression/statement type
+- What does "GJ" stand for? 
+  - Why do we care?
+    - The visitor super class can be parameterized over an argument and
+      return type for each ~accept/visit~ method.
+      - recall the type rules!
+    - Normal visitor relies entirely on side effects ~void~ return type and no
+      arguments.
+    - In our case pass down a type environment, return expression/statement type
 
-#     #+begin_src java
-#     ...
-#     /**
-#      * f0 -> <FN>
-#      * f1 -> "("
-#      * f2 -> RType()
-#      * f3 -> <VAR>
-#      * f4 -> ")"
-#      * f5 -> "{"
-#      * f6 -> Expr()
-#      * f7 -> "}"
-#      */
-#     public Vector<Type> visit(Abs n, HashMap env){
-#         // get the type of the parameter
-#         Vector<Type> paramTypes = n.f2.accept(this, env);
-#         Type paramType  = paramTypes.elementAt(0);
+    #+begin_src java
+    ...
+    /**
+     * f0 -> <FN>
+     * f1 -> "("
+     * f2 -> RType()
+     * f3 -> <VAR>
+     * f4 -> ")"
+     * f5 -> "{"
+     * f6 -> Expr()
+     * f7 -> "}"
+     */
+    public Vector<Type> visit(Abs n, HashMap env){
+        // get the type of the parameter
+        Vector<Type> paramTypes = n.f2.accept(this, env);
+        Type paramType  = paramTypes.elementAt(0);
 
-#         // add param id and type to the type environment (mapping)
-#         env.put(n.f3.toString(), paramType);
+        // add param id and type to the type environment (mapping)
+        env.put(n.f3.toString(), paramType);
 
-#         // using the new environment get the type of the expression
-#         Vector<Type> exprTypes = n.f6.accept(this, env);
-#         Type exprType = exprTypes.elementAt(0);
+        // using the new environment get the type of the expression
+        Vector<Type> exprTypes = n.f6.accept(this, env);
+        Type exprType = exprTypes.elementAt(0);
 
-#         // construct the arrow type for the abstraction
-#         return buildType(new Type(paramType, exprType));
-#     }
-#     ...
-#     #+end_src
+        // construct the arrow type for the abstraction
+        return buildType(new Type(paramType, exprType));
+    }
+    ...
+    #+end_src
 
-# * Parsing expression grammars 
-# - Deterministic choice
+* Parsing expression grammars 
+- Deterministic choice
   
-#   The choice operator becomes deterministic, proceeding left to right:
+  The choice operator becomes deterministic, proceeding left to right:
 
-#   #+begin_example
-#   A -> B | C | D 
-#   ...
-#   #+end_example
+  #+begin_example
+  A -> B | C | D 
+  ...
+  #+end_example
 
-# - Can you write a context free grammar for ~a^nb^nc^n~?
-#   - you can with a Parsing Expression Grammar!
-#   - There are ostensibly CFG's that can't be written as a PEG
+- Can you write a context free grammar for ~a^nb^nc^n~?
+  - you can with a Parsing Expression Grammar!
+  - There are ostensibly CFG's that can't be written as a PEG
 
