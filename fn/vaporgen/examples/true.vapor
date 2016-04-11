@@ -1,0 +1,15 @@
+func True(x y)
+     ret x
+
+func False(x y)
+     ret y
+
+func And(b1 b2 t f)
+     result1 = call b1(b2 :False)
+     result2 = call result1(t f)
+     ret result2
+
+func Main()
+     result = call :And(:False :True 1 0)
+     PrintIntS(result)
+     ret 0

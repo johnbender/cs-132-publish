@@ -1,0 +1,38 @@
+/* preamble with class for static methods/input stream*/
+PARSER_BEGIN(Fn)
+  class Fn { }
+PARSER_END(Fn)
+
+SKIP :
+{ " " | "\t" | "\n" }
+
+TOKEN:
+{ < FN: "fn" >
+| < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LCURLY: "{" >
+| < RCURLY: "}" >
+| < VAR: ["a"-"z"](["a"-"z"] | ["0"-"9"])* >
+| < N: ["1"-"9"](["0"-"9"])* >
+}
+
+void Prog() :
+{}
+{ Expr() <EOF> }
+
+void Expr() :
+{}
+{ Abs()
+| App()
+| <VAR>
+| <N>
+}
+
+void Abs() :
+{}
+{ <FN> "(" <ID> ")" "{" Expr() "}" }
+
+void App() :
+{}
+{ Expr() "(" Expr() ")" }
+

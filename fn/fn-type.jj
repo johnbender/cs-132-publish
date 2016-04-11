@@ -1,0 +1,72 @@
+PARSER_BEGIN(Fn)
+package parser;
+
+import parser.Fn;
+
+public class Fn {}
+PARSER_END(Fn)
+
+SKIP :
+{ " "
+| "\t"
+| "\n"
+/* single line comments */
+| <"#" (~["\n","\r"])* ("\n" | "\r" | "\r\n")>
+}
+
+TOKEN:
+{ < FN: "fn" >
+| < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LCURLY: "{" >
+| < RCURLY: "}" >
+| < TINT: "int" >
+| < VAR: ["a"-"z"](["a"-"z"] | ["0"-"9"])* >
+| < ARROW: "->" >
+| < N: ["1"-"9"](["0"-"9"])* >
+}
+
+void Prog() :
+{}
+{ Expr() <EOF> }
+
+void Expr() :
+{}
+{ Abs() RApp()
+| Var() RApp()
+| Int()
+}
+
+void Abs() :
+{}
+{
+  <FN> "(" RType() <VAR> RParam() ")" "{" Expr() "}"
+}
+
+void RParam():
+{}
+{ ( "," RType() <VAR> RParam() )? }
+
+void RApp() :
+{}
+{ ( "(" Expr() RArg() ")" RApp() )? }
+
+void RArg():
+{}
+{ ("," Expr() RArg())? }
+
+void RType() :
+{}
+{ TInt() ( <ARROW> RType() )? }
+
+void Var() :
+{}
+{ <VAR> }
+
+void Int() :
+{}
+{ <N> }
+
+void TInt():
+{}
+{ <TINT> }

@@ -1,0 +1,10 @@
+func fn1(x)
+     t2 = x
+     ret t2
+
+func Main()
+     t1 = :fn1
+     t3 = 1
+     t0 = call t1(t3)
+     PrintIntS(t0)
+     ret t0
