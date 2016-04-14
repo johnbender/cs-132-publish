@@ -12,9 +12,9 @@ public class TypeVisitor
     extends GJDepthFirst<Vector<Type>, HashMap<String, Type>> {
 
     Vector<Type> buildType(Type t){
-        Vector<Type> typeVec = new Vector<Type>();
-        typeVec.add(t);
-        return typeVec;
+       Vector<Type> typeVec = new Vector<Type>();
+       typeVec.add(t);
+       return typeVec;
     }
 
     Vector<Type> buildType(ConstType t){
@@ -48,17 +48,17 @@ public class TypeVisitor
             return buildType(ConstType.NOPE);
         }
     }
-
-    /**
-     * f0 -> <FN>
-     * f1 -> "("
-     * f2 -> RType()
-     * f3 -> <VAR>
-     * f4 -> ")"
-     * f5 -> "{"
-     * f6 -> Expr()
-     * f7 -> "}"
-     */
+   /**
+    * f0 -> <FN>
+    * f1 -> "("
+    * f2 -> RType()
+    * f3 -> <VAR>
+    * f4 -> RParam()
+    * f5 -> ")"
+    * f6 -> "{"
+    * f7 -> Expr()
+    * f8 -> "}"
+    */
     public Vector<Type> visit(Abs n, HashMap env){
         // get the type of the parameter
         Vector<Type> paramTypes = n.f2.accept(this, env);
@@ -68,7 +68,7 @@ public class TypeVisitor
         env.put(n.f3.toString(), paramType);
 
         // using the new environment get the type of the expression
-        Vector<Type> exprTypes = n.f6.accept(this, env);
+        Vector<Type> exprTypes = n.f7.accept(this, env);
         Type exprType = exprTypes.elementAt(0);
 
         // construct the arrow type for the abstraction
