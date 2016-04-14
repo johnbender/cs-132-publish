@@ -12,11 +12,10 @@ class Parse {
     }
 
     static void tree() {
-        Fn fn = new Fn(System.in);
 
         try {
             // creates the visitor tree
-            Prog p = Fn.Prog();
+            Prog p = new Fn(System.in).Prog();
 
             // sets up a new visitor to traverse the tree
             TypeVisitor visitor = new TypeVisitor();
