@@ -37,13 +37,15 @@
   - Why is it left-recursive?
 
   - javacc definition 
-    #+include: ../../fn/fn-lr.jj src javacc
+    #+include: fn/fn-lr.jj src javacc
 
   - javacc semantic actions
-    #+include: ../../fn/fn-semantic.jj src javacc
+    #+include: fn/fn-semantic.jj src javacc
 
     - javacc output
-      #+include: ../../fn/parser/Fn-simple.java src java
+      #+include: fn/parser/Fn-simple.java src java
+
+    - Without semantic actions what does a grammar do?
 
   - left factored grammar for fn
 
@@ -67,69 +69,329 @@
   curl -O http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
   #+end_src
 
-- example use
-
-  #+include: fn/bin/build.sh src bash
-
-  Focus on the ~then~ branch (runs JTB)
 
 - What is JTB?
-
-  - javacc definition with types
-
-    #+include: ../../fn/fn.jj src javacc
-
-  - javacc and jtb output
-
-    #+include: ../../fn/parser/Fn.java src java
+  - Tool that takes javacc grammars and produces three things:
+    - A transformed grammar with semantic actions to build an AST
+    - Abstract Syntax Tree classes 
+    - Visitor classes that will work with the AST classes
 
 - How does JTB work? 
-  - Semantic actions/objects for creating an AST
+  
+  - example use
 
-    #+include: ../../fn/parser/jtb.out.jj src javacc
+    #+include: fn/bin/build.sh src bash
 
-  - Visitor classes to subclass for implementation
-    - e.g., ~GJDepthFirst~, ~DepthFirstVisitor~
+    - output
+
+      #+begin_example
+      $ bash bin/build.sh
+      JTB version 1.3.2                                                             
+      JTB:  Reading from ../fn.jj...                                                
+      JTB:  Input file parsed successfully.                                         
+      JTB:  "jtb.out.jj" generated to current directory.                            
+      JTB:  Syntax tree Java source files generated to directory "syntaxtree".      
+
+      JTB:  "GJVisitor.java" generated to directory "visitor".                      
+      JTB:  "Visitor.java" generated to directory "visitor".                        
+      JTB:  "GJNoArguVisitor.java" generated to directory "visitor".                
+      JTB:  "GJVoidVisitor.java" generated to directory "visitor".                  
+      JTB:  "GJDepthFirst.java" generated to directory "visitor".                   
+      JTB:  "DepthFirstVisitor.java" generated to directory "visitor".              
+      JTB:  "GJNoArguDepthFirst.java" generated to directory "visitor".             
+      JTB:  "GJVoidDepthFirst.java" generated to directory "visitor".               
+
+      /vagrant/notes/lectures/fn                                                    
+      ==> Running javacc with JTB output ...                                        
+      Java Compiler Compiler Version 5.0 (Parser Generator)                         
+      (type "javacc" with no arguments for help)                                    
+      Reading from file parser/jtb.out.jj . . .                                     
+      File "TokenMgrError.java" is being rebuilt.                                   
+      File "ParseException.java" is being rebuilt.                                  
+      File "Token.java" is being rebuilt.                                           
+      File "SimpleCharStream.java" is being rebuilt.                                
+      Parser generated successfully.                                                
+      #+end_example
+
+    - generated output
+      - a grammar with semantic actions, ~parser/jtb.out.jj~
+        - associates code with the grammar definitions to construct an AST
+
+      - a set of classes that make up the AST data structure, ~parser/syntaxtree/~
+        - this is the structure that's created when the parser is run
+
+      - a set of visitor classes to extend, ~parser/visitor/~
+        
+      - **NOTE** the ~parser/~ subdirectory is specified in the example, the
+        default is the current working directory.
+  
+  - javacc and jtb output
+ 
+    - Augmented grammar with semantic actions for creating an AST
+
+      #+include: fn/parser/jtb.out.jj src javacc
+
+    - Parser class, ~Fn~
+
+      #+begin_src javacc
+      PARSER_BEGIN(Fn)
+      package parser;
+
+      import parser.Fn;
+
+      public class Fn {}
+      PARSER_END(Fn)
+      #+end_src
+
+      - JTB alters this a bit for its own purposes
+      - javacc takes ~jtb.out.jj~ turns it into a parser implementation
+
+        #+include: fn/parser/Fn.java src java
+
+    - AST classes
+      
+      #+begin_example
+      $ ls parser/syntaxtree/
+      Abs.class               NodeListInterface.class RApp.class
+      Abs.java                NodeListInterface.java  RApp.java
+      Expr.class              NodeListOptional.class  RArg.class
+      Expr.java               NodeListOptional.java   RArg.java
+      Int.class               NodeOptional.class      RParam.class
+      Int.java                NodeOptional.java       RParam.java
+      Node.class              NodeSequence.class      RType.class
+      Node.java               NodeSequence.java       RType.java
+      NodeChoice.class        NodeToken.class         TInt.class
+      NodeChoice.java         NodeToken.java          TInt.java
+      NodeList.class          Prog.class              Var.class
+      NodeList.java           Prog.java               Var.java
+      $ 
+      #+end_example
+
+      - Example non-terminal AST node 
+
+        #+include: fn/parser/syntaxtree/Abs.java src java
+        
+        - What does each of the ~accept~ methods correspond to? Why?
+
+    - Visitor classes
+
+      #+begin_example
+      $ ls parser/visitor/
+      DepthFirstVisitor.class GJNoArguVisitor.class   GJVoidVisitor.class
+      DepthFirstVisitor.java  GJNoArguVisitor.java    GJVoidVisitor.java
+      GJDepthFirst.class      GJVisitor.class         Visitor.class
+      GJDepthFirst.java       GJVisitor.java          Visitor.java
+      GJNoArguDepthFirst.java GJVoidDepthFirst.java
+      $
+      #+end_example
+
+      - Visitor classes *I* subclassed for implementation, ~GJDepthFirst~
+
+        #+include: fn/analysis/TypeVisitor.java src java
+
+        - What does each of the methods correspond to? Why?
 
 - What does "GJ" stand for? 
   - Why do we care?
-    - The visitor super class can be parameterized over an argument and
+    - The visitor superclass can be parameterized over an argument and
       return type for each ~accept/visit~ method.
-      - recall the type rules!
-    - Normal visitor relies entirely on side effects ~void~ return type and no
-      arguments.
-    - In our case pass down a type environment, return expression/statement type
 
-    #+begin_src java
-    ...
-    /**
-     * f0 -> <FN>
-     * f1 -> "("
-     * f2 -> RType()
-     * f3 -> <VAR>
-     * f4 -> ")"
-     * f5 -> "{"
-     * f6 -> Expr()
-     * f7 -> "}"
-     */
-    public Vector<Type> visit(Abs n, HashMap env){
-        // get the type of the parameter
+            #+begin_example
+      T, id : t1 |- e : t2 
+      ------------------------------- abs
+      T |- fn(t1 id) { e } : t1 -> t2         
+      #+end_example
+
+    - ~T~ is the argument, and ~t2~ / ~t1 -> t2~ are the return for our visitor
+      methods
+
+    - Pass down a type environment, return expression/statement type
+    - Definition of the type environment and type are up to you
+
+- Example visitor method
+  #+begin_src java
+  ...
+  /**
+  * f0 -> <FN>
+  * f1 -> "("
+  * f2 -> RType()
+  * f3 -> <VAR>
+  * f4 -> RParam()
+  * f5 -> ")"
+  * f6 -> "{"
+  * f7 -> Expr()
+  * f8 -> "}"
+  */
+  public Vector<Type> visit(Abs n, HashMap env){
+      // get the type of the parameter
+      Vector<Type> paramTypes = n.f2.accept(this, env);
+      Type paramType  = paramTypes.elementAt(0);
+
+      // add param id and type to the type environment (mapping)
+      env.put(n.f3.toString(), paramType);
+
+      // using the new environment get the type of the expression
+      Vector<Type> exprTypes = n.f7.accept(this, env);
+      Type exprType = exprTypes.elementAt(0);
+
+      // construct the arrow type for the abstraction
+      return buildType(new Type(paramType, exprType));
+  }
+  ...
+  #+end_src
+
+  - Breakdown
+
+    #+begin_example
+    T, id : t1 |- e : t2 
+    ------------------------------- abs
+    T |- fn(t1 id) { e } : t1 -> t2         
+    #+end_example
+
+    - We need to do three things to type check ~fn(t1 id) { e }~
+       
+      1. get the concrete type ~t1~, eg ~nat~ or ~nat -> (nat -> nat)~
+      2. get the type of ~e~
+      3. produce/return some type ~t1 -> t2~
+         
+    - This corresponds to two chunks of code in the method:
+
+      1. the type ~t1~
+         
+         #+begin_src java
+         /**
+         * f0 -> <FN>
+         * f1 -> "("
+         * f2 -> RType()
+         * f3 -> <VAR>
+         * f4 -> RParam()
+         * f5 -> ")"
+         * f6 -> "{"
+         * f7 -> Expr()
+         * f8 -> "}"
+         */
+         public Vector<Type> visit(Abs n, HashMap env){
+             // get the type of the parameter from f2 by sending the vistor 
+             // down the tree of that declared type
+             Vector<Type> paramTypes = n.f2.accept(this, env);
+             
+             // implementation detail of my representation of types
+             Type paramType  = paramTypes.elementAt(0);
+            
+             ...
+         }
+         #+end_src
+
+      2. the type of ~e~
+         
+         #+begin_src java
+         /**
+         * f0 -> <FN>
+         * f1 -> "("
+         * f2 -> RType()
+         * f3 -> <VAR>
+         * f4 -> RParam()
+         * f5 -> ")"
+         * f6 -> "{"
+         * f7 -> Expr()
+         * f8 -> "}"
+         */
+         public Vector<Type> visit(Abs n, HashMap env){
+           ...
+
+           // add param id and type to the type environment 
+           // that is, extend the type environment `T, id : t1`
+           env.put(n.f3.toString(), paramType);
+
+           // using the new environment get the type of the expression
+           Vector<Type> exprTypes = n.f7.accept(this, env);
+           
+           // again implementaiton detail of type construction
+           Type exprType = exprTypes.elementAt(0);
+
+           ... 
+         }
+         #+end_src
+
+         - How might my implementation as a ~HashMap~ cause problems?
+           - Hint: what happens when a variable gets shadowed?
+
+      3. return the type ~t1 -> t2~
+
+         #+begin_src java
+         /**
+         * f0 -> <FN>
+         * f1 -> "("
+         * f2 -> RType()
+         * f3 -> <VAR>
+         * f4 -> RParam()
+         * f5 -> ")"
+         * f6 -> "{"
+         * f7 -> Expr()
+         * f8 -> "}"
+         */
+         public Vector<Type> visit(Abs n, HashMap env){
+           ...
+
+           // construct the arrow type for the abstraction
+           return buildType(new Type(paramType, exprType));
+         }
+         #+end_src
+
+- Bringing it together
+  #+include: fn/Parse.java src java
+
+  - A short trace of visitor execution:
+    - ~main~ calls ~Prog#accept~
+
+      #+begin_src java
+      Prog p = new Fn(System.in).Prog();
+      TypeVisitor visitor = new TypeVisitor();
+      HashMap<String, Type> typeEnv = new HashMap<String, Type>();
+      p.accept(visitor, typeEnv);
+      #+end_src
+
+    - ~Prog#accept~ calls ~TypeVisitor#visit~ with itself/type env
+
+      #+begin_src java
+      public <R,A> R accept(visitor.GJVisitor<R,A> v, A argu) {
+        // v is our TypeVisitor
+        // argu is our TypeEnv
+        // this is the Prog object
+        return v.visit(this,argu);
+      }
+      #+end_src
+
+    - ~TypeVisitor#visit~ calls ~Expr#accept~ with itself/type env
+
+      #+begin_src java
+      /**
+       * f0 -> Expr()
+       * f1 -> <EOF>
+       */
+      public Vector<Type> visit(Prog n, HashMap env) {
+        return n.f0.accept(this, env);
+      }
+      #+end_src
+
+    - ... some more calls ...
+      
+    - ~TypeVisitor#visit~ does some - *gasp* - actual checking!
+
+      #+begin_src java
+      public Vector<Type> visit(Abs n, HashMap env){
+        // get the type of the parameter from f2 by sending the vistor 
+        // down the tree of that declared type
         Vector<Type> paramTypes = n.f2.accept(this, env);
+
+        // implementation detail of my representation of types
         Type paramType  = paramTypes.elementAt(0);
 
-        // add param id and type to the type environment (mapping)
-        env.put(n.f3.toString(), paramType);
+        ...
+      }
+      #+end_src
 
-        // using the new environment get the type of the expression
-        Vector<Type> exprTypes = n.f6.accept(this, env);
-        Type exprType = exprTypes.elementAt(0);
-
-        // construct the arrow type for the abstraction
-        return buildType(new Type(paramType, exprType));
-    }
-    ...
-    #+end_src
-
+  
 * Parsing expression grammars 
 - Deterministic choice
   

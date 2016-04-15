@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-04-11 Mon 14:38 -->
+<!-- 2016-04-14 Thu 22:06 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="viewport" content="width=device-width, initial-scale=1" />
 <title>HW1 Grading, JTB, TypeVisitor, etc</title>
@@ -553,6 +553,8 @@ javacc output
 <span style="color: #268bd2;">}</span>
 </pre>
 </div></li>
+
+<li>Without semantic actions what does a grammar do?</li>
 </ul></li>
 
 <li><p>
@@ -590,7 +592,23 @@ install
 curl -O http://compilers.cs.ucla.edu/jtb/Files/jtb132.jar
 </pre>
 </div></li>
+</ul>
 
+
+<ul class="org-ul">
+<li>What is JTB?
+<ul class="org-ul">
+<li>Tool that takes javacc grammars and produces three things:
+<ul class="org-ul">
+<li>A transformed grammar with semantic actions to build an AST</li>
+<li>Abstract Syntax Tree classes</li>
+<li>Visitor classes that will work with the AST classes</li>
+</ul></li>
+</ul></li>
+
+<li>How does JTB work? 
+
+<ul class="org-ul">
 <li><p>
 example use
 </p>
@@ -601,32 +619,372 @@ example use
 
 <span style="color: #af5fd7;">javacc_opts</span>=<span style="color: #2aa198;">"-output_directory=parser "</span>
 
-<span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #268bd2;">[</span> <span style="color: #2aa198;">"$1"</span> == <span style="color: #2aa198;">"jtb"</span> <span style="color: #268bd2;">]</span>; <span style="color: #268bd2; font-weight: bold;">then</span>
-  <span style="color: #268bd2;">echo</span> <span style="color: #2aa198;">"==&gt; Running javacc with JTB output ..."</span>
-  <span style="color: #268bd2;">cd</span> parser
-  java -jar ../../bin/jtb132.jar ../fn.jj -o jtb.out.jj
-  <span style="color: #268bd2;">cd</span> -
+<span style="color: #268bd2;">cd</span> parser
+java -jar ../bin/jtb132.jar ../fn.jj -o jtb.out.jj
+<span style="color: #268bd2;">cd</span> -
 
-  <span style="color: #268bd2;">echo</span> <span style="color: #2aa198;">"==&gt; Running javacc with JTB output ..."</span>
-  javacc $<span style="color: #af5fd7;">javacc_opts</span> parser/jtb.out.jj
-
-<span style="color: #268bd2; font-weight: bold;">else</span>
-  javacc $<span style="color: #af5fd7;">javacc_opts</span> fn-semantic.jj
-<span style="color: #268bd2; font-weight: bold;">fi</span>
+<span style="color: #268bd2;">echo</span> <span style="color: #2aa198;">"==&gt; Running javacc with JTB output ..."</span>
+javacc $<span style="color: #af5fd7;">javacc_opts</span> parser/jtb.out.jj
 
 javac -classpath .:parser Parse.java
 </pre>
 </div>
 
-<p>
-Focus on the <code>then</code> branch (runs JTB)
-</p></li>
+<ul class="org-ul">
+<li><p>
+output
+</p>
 
-<li>What is JTB?
+<pre class="example">
+$ bash bin/build.sh
+JTB version 1.3.2                                                             
+JTB:  Reading from ../fn.jj...                                                
+JTB:  Input file parsed successfully.                                         
+JTB:  "jtb.out.jj" generated to current directory.                            
+JTB:  Syntax tree Java source files generated to directory "syntaxtree".      
+
+JTB:  "GJVisitor.java" generated to directory "visitor".                      
+JTB:  "Visitor.java" generated to directory "visitor".                        
+JTB:  "GJNoArguVisitor.java" generated to directory "visitor".                
+JTB:  "GJVoidVisitor.java" generated to directory "visitor".                  
+JTB:  "GJDepthFirst.java" generated to directory "visitor".                   
+JTB:  "DepthFirstVisitor.java" generated to directory "visitor".              
+JTB:  "GJNoArguDepthFirst.java" generated to directory "visitor".             
+JTB:  "GJVoidDepthFirst.java" generated to directory "visitor".               
+
+/vagrant/notes/lectures/fn                                                    
+==&gt; Running javacc with JTB output ...                                        
+Java Compiler Compiler Version 5.0 (Parser Generator)                         
+(type "javacc" with no arguments for help)                                    
+Reading from file parser/jtb.out.jj . . .                                     
+File "TokenMgrError.java" is being rebuilt.                                   
+File "ParseException.java" is being rebuilt.                                  
+File "Token.java" is being rebuilt.                                           
+File "SimpleCharStream.java" is being rebuilt.                                
+Parser generated successfully.
+</pre></li>
+
+<li>generated output
+<ul class="org-ul">
+<li>a grammar with semantic actions, <code>parser/jtb.out.jj</code>
+<ul class="org-ul">
+<li>associates code with the grammar definitions to construct an AST</li>
+</ul></li>
+
+<li>a set of classes that make up the AST data structure, <code>parser/syntaxtree/</code>
+<ul class="org-ul">
+<li>this is the structure that's created when the parser is run</li>
+</ul></li>
+
+<li>a set of visitor classes to extend, <code>parser/visitor/</code></li>
+
+<li><b><b>NOTE</b></b> the <code>parser/</code> subdirectory is specified in the example, the
+default is the current working directory.</li>
+</ul></li>
+</ul></li>
+
+<li>javacc and jtb output
 
 <ul class="org-ul">
 <li><p>
-javacc definition with types
+Augmented grammar with semantic actions for creating an AST
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-javacc">//
+// Generated by JTB 1.3.2
+//
+
+
+
+PARSER_BEGIN(Fn)
+package parser;
+
+import parser.Fn;
+import syntaxtree.*;
+import java.util.Vector;
+
+
+public class Fn 
+{
+}
+
+class JTBToolkit {
+   static NodeToken makeNodeToken(Token t) {
+      return new NodeToken(t.image.intern(), t.kind, t.beginLine, t.beginColumn, t.endLine, t.endColumn);
+   }
+}
+
+
+PARSER_END(Fn)
+
+SKIP :
+{
+   " "
+   | "\t"
+   | "\n"
+   | &lt;"#" (~["\n", "\r"])* ("\n" | "\r" | "\r\n")&gt;
+}
+
+TOKEN :
+{
+   &lt;FN: "fn"&gt;
+   | &lt;LPAREN: "("&gt;
+   | &lt;RPAREN: ")"&gt;
+   | &lt;LCURLY: "{"&gt;
+   | &lt;RCURLY: "}"&gt;
+   | &lt;TINT: "int"&gt;
+   | &lt;VAR: ["a"-"z"] (["a"-"z"] | ["0"-"9"])*&gt;
+   | &lt;ARROW: "-&gt;"&gt;
+   | &lt;N: ["1"-"9"] (["0"-"9"])*&gt;
+}
+
+Prog Prog() :
+{
+   Expr n0;
+   NodeToken n1;
+   Token n2;
+
+
+}
+{
+   n0=Expr()
+   n2=&lt;EOF&gt; { 
+      n2.beginColumn++; n2.endColumn++;
+      n1 = JTBToolkit.makeNodeToken(n2);
+   }
+
+   { return new Prog(n0,n1); }
+}
+
+Expr Expr() :
+{
+   NodeChoice n0;
+   NodeSequence n1;
+   Abs n2;
+   RApp n3;
+   NodeSequence n4;
+   Var n5;
+   RApp n6;
+   Int n7;
+
+
+}
+{
+   (
+      { n1 = new NodeSequence(2); }
+      n2=Abs()
+      { n1.addNode(n2); }
+      n3=RApp()
+      { n1.addNode(n3); }
+      { n0 = new NodeChoice(n1, 0); }
+   |
+      { n4 = new NodeSequence(2); }
+      n5=Var()
+      { n4.addNode(n5); }
+      n6=RApp()
+      { n4.addNode(n6); }
+      { n0 = new NodeChoice(n4, 1); }
+   |
+      n7=Int()
+      { n0 = new NodeChoice(n7, 2); }
+   )
+
+   { return new Expr(n0); }
+}
+
+Abs Abs() :
+{
+   NodeToken n0;
+   Token n1;
+   NodeToken n2;
+   Token n3;
+   RType n4;
+   NodeToken n5;
+   Token n6;
+   RParam n7;
+   NodeToken n8;
+   Token n9;
+   NodeToken n10;
+   Token n11;
+   Expr n12;
+   NodeToken n13;
+   Token n14;
+
+
+}
+{
+   n1=&lt;FN&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
+   n3="(" { n2 = JTBToolkit.makeNodeToken(n3); }
+   n4=RType()
+   n6=&lt;VAR&gt; { n5 = JTBToolkit.makeNodeToken(n6); }
+   n7=RParam()
+   n9=")" { n8 = JTBToolkit.makeNodeToken(n9); }
+   n11="{" { n10 = JTBToolkit.makeNodeToken(n11); }
+   n12=Expr()
+   n14="}" { n13 = JTBToolkit.makeNodeToken(n14); }
+
+   { return new Abs(n0,n2,n4,n5,n7,n8,n10,n12,n13); }
+}
+
+RParam RParam() :
+{
+   NodeOptional n0 = new NodeOptional();
+   NodeSequence n1;
+   NodeToken n2;
+   Token n3;
+   RType n4;
+   NodeToken n5;
+   Token n6;
+   RParam n7;
+
+
+}
+{
+   (
+      { n1 = new NodeSequence(4); }
+      n3="," { n2 = JTBToolkit.makeNodeToken(n3); }
+      { n1.addNode(n2); }
+      n4=RType()
+      { n1.addNode(n4); }
+      n6=&lt;VAR&gt; { n5 = JTBToolkit.makeNodeToken(n6); }
+      { n1.addNode(n5); }
+      n7=RParam()
+      { n1.addNode(n7); }
+      { n0.addNode(n1); }
+   )?
+
+   { return new RParam(n0); }
+}
+
+RApp RApp() :
+{
+   NodeOptional n0 = new NodeOptional();
+   NodeSequence n1;
+   NodeToken n2;
+   Token n3;
+   Expr n4;
+   RArg n5;
+   NodeToken n6;
+   Token n7;
+   RApp n8;
+
+
+}
+{
+   (
+      { n1 = new NodeSequence(5); }
+      n3="(" { n2 = JTBToolkit.makeNodeToken(n3); }
+      { n1.addNode(n2); }
+      n4=Expr()
+      { n1.addNode(n4); }
+      n5=RArg()
+      { n1.addNode(n5); }
+      n7=")" { n6 = JTBToolkit.makeNodeToken(n7); }
+      { n1.addNode(n6); }
+      n8=RApp()
+      { n1.addNode(n8); }
+      { n0.addNode(n1); }
+   )?
+
+   { return new RApp(n0); }
+}
+
+RArg RArg() :
+{
+   NodeOptional n0 = new NodeOptional();
+   NodeSequence n1;
+   NodeToken n2;
+   Token n3;
+   Expr n4;
+   RArg n5;
+
+
+}
+{
+   (
+      { n1 = new NodeSequence(3); }
+      n3="," { n2 = JTBToolkit.makeNodeToken(n3); }
+      { n1.addNode(n2); }
+      n4=Expr()
+      { n1.addNode(n4); }
+      n5=RArg()
+      { n1.addNode(n5); }
+      { n0.addNode(n1); }
+   )?
+
+   { return new RArg(n0); }
+}
+
+RType RType() :
+{
+   TInt n0;
+   NodeOptional n1 = new NodeOptional();
+   NodeSequence n2;
+   NodeToken n3;
+   Token n4;
+   RType n5;
+
+
+}
+{
+   n0=TInt()
+   (
+      { n2 = new NodeSequence(2); }
+      n4=&lt;ARROW&gt; { n3 = JTBToolkit.makeNodeToken(n4); }
+      { n2.addNode(n3); }
+      n5=RType()
+      { n2.addNode(n5); }
+      { n1.addNode(n2); }
+   )?
+
+   { return new RType(n0,n1); }
+}
+
+Var Var() :
+{
+   NodeToken n0;
+   Token n1;
+
+
+}
+{
+   n1=&lt;VAR&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
+
+   { return new Var(n0); }
+}
+
+Int Int() :
+{
+   NodeToken n0;
+   Token n1;
+
+
+}
+{
+   n1=&lt;N&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
+
+   { return new Int(n0); }
+}
+
+TInt TInt() :
+{
+   NodeToken n0;
+   Token n1;
+
+
+}
+{
+   n1=&lt;TINT&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
+
+   { return new TInt(n0); }
+}
+</pre>
+</div></li>
+
+<li><p>
+Parser class, <code>Fn</code>
 </p>
 
 <div class="org-src-container">
@@ -638,76 +996,13 @@ import parser.Fn;
 
 public class Fn {}
 PARSER_END(Fn)
-
-SKIP :
-{ " "
-| "\t"
-| "\n"
-/* single line comments */
-| &lt;"#" (~["\n","\r"])* ("\n" | "\r" | "\r\n")&gt;
-}
-
-TOKEN:
-{ &lt; FN: "fn" &gt;
-| &lt; LPAREN: "(" &gt;
-| &lt; RPAREN: ")" &gt;
-| &lt; LCURLY: "{" &gt;
-| &lt; RCURLY: "}" &gt;
-| &lt; TINT: "int" &gt;
-| &lt; VAR: ["a"-"z"](["a"-"z"] | ["0"-"9"])* &gt;
-| &lt; ARROW: "-&gt;" &gt;
-| &lt; N: ["1"-"9"](["0"-"9"])* &gt;
-}
-
-void Prog() :
-{}
-{ Expr() &lt;EOF&gt; }
-
-void Expr() :
-{}
-{ Abs() RApp()
-| Var() RApp()
-| Int()
-}
-
-void Abs() :
-{}
-{
-  &lt;FN&gt; "(" RType() &lt;VAR&gt; RParam() ")" "{" Expr() "}"
-}
-
-void RParam():
-{}
-{ ( "," RType() &lt;VAR&gt; RParam() )? }
-
-void RApp() :
-{}
-{ ( "(" Expr() RArg() ")" RApp() )? }
-
-void RArg():
-{}
-{ ("," Expr() RArg())? }
-
-void RType() :
-{}
-{ TInt() ( &lt;ARROW&gt; RType() )? }
-
-void Var() :
-{}
-{ &lt;VAR&gt; }
-
-void Int() :
-{}
-{ &lt;N&gt; }
-
-void TInt():
-{}
-{ &lt;TINT&gt; }
 </pre>
-</div></li>
+</div>
 
+<ul class="org-ul">
+<li>JTB alters this a bit for its own purposes</li>
 <li><p>
-javacc and jtb output
+javacc takes <code>jtb.out.jj</code> turns it into a parser implementation
 </p>
 
 <div class="org-src-container">
@@ -1156,339 +1451,383 @@ javacc and jtb output
 </div></li>
 </ul></li>
 
-<li>How does JTB work? 
+<li><p>
+AST classes
+</p>
+
+<pre class="example">
+$ ls parser/syntaxtree/
+Abs.class               NodeListInterface.class RApp.class
+Abs.java                NodeListInterface.java  RApp.java
+Expr.class              NodeListOptional.class  RArg.class
+Expr.java               NodeListOptional.java   RArg.java
+Int.class               NodeOptional.class      RParam.class
+Int.java                NodeOptional.java       RParam.java
+Node.class              NodeSequence.class      RType.class
+Node.java               NodeSequence.java       RType.java
+NodeChoice.class        NodeToken.class         TInt.class
+NodeChoice.java         NodeToken.java          TInt.java
+NodeList.class          Prog.class              Var.class
+NodeList.java           Prog.java               Var.java
+$
+</pre>
+
 <ul class="org-ul">
 <li><p>
-Semantic actions/objects for creating an AST
+Example non-terminal AST node 
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-javacc">//
-// Generated by JTB 1.3.2
-//
+<pre class="src src-java"><span style="color: #008787; background-color: #ffffff;">//</span>
+<span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">Generated by JTB 1.3.2</span>
+<span style="color: #008787; background-color: #ffffff;">//</span>
 
+<span style="color: #268bd2; font-weight: bold;">package</span> <span style="color: #8700af;">syntaxtree</span>;
 
+<span style="color: #008787;">/**</span>
+<span style="color: #008787;"> * Grammar production:</span>
+<span style="color: #008787;"> * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;FN&gt;</span>
+<span style="color: #008787;"> * f1 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "("</span>
+<span style="color: #008787;"> * f2 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RType()</span>
+<span style="color: #008787;"> * f3 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;VAR&gt;</span>
+<span style="color: #008787;"> * f4 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RParam()</span>
+<span style="color: #008787;"> * f5 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> ")"</span>
+<span style="color: #008787;"> * f6 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "{"</span>
+<span style="color: #008787;"> * f7 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> Expr()</span>
+<span style="color: #008787;"> * f8 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "}"</span>
+<span style="color: #008787;"> */</span>
+<span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">Abs</span> <span style="color: #268bd2; font-weight: bold;">implements</span> <span style="color: #af005f; font-weight: bold;">Node</span> <span style="color: #268bd2;">{</span>
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">f0</span>;
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">f1</span>;
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">RType</span> <span style="color: #af5fd7;">f2</span>;
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">f3</span>;
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">RParam</span> <span style="color: #af5fd7;">f4</span>;
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">f5</span>;
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">f6</span>;
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Expr</span> <span style="color: #af5fd7;">f7</span>;
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">f8</span>;
 
-PARSER_BEGIN(Fn)
-package parser;
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af; font-weight: bold;">Abs</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n0</span>, <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n1</span>, <span style="color: #af005f; font-weight: bold;">RType</span> <span style="color: #af5fd7;">n2</span>, <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n3</span>, <span style="color: #af005f; font-weight: bold;">RParam</span> <span style="color: #af5fd7;">n4</span>, <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n5</span>, <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n6</span>, <span style="color: #af005f; font-weight: bold;">Expr</span> <span style="color: #af5fd7;">n7</span>, <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n8</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+      f0 = n0;
+      f1 = n1;
+      f2 = n2;
+      f3 = n3;
+      f4 = n4;
+      f5 = n5;
+      f6 = n6;
+      f7 = n7;
+      f8 = n8;
+   <span style="color: #8700af;">}</span>
 
-import parser.Fn;
-import syntaxtree.*;
-import java.util.Vector;
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af; font-weight: bold;">Abs</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">RType</span> <span style="color: #af5fd7;">n0</span>, <span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n1</span>, <span style="color: #af005f; font-weight: bold;">RParam</span> <span style="color: #af5fd7;">n2</span>, <span style="color: #af005f; font-weight: bold;">Expr</span> <span style="color: #af5fd7;">n3</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+      f0 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"fn"</span><span style="color: #2aa198;">)</span>;
+      f1 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"("</span><span style="color: #2aa198;">)</span>;
+      f2 = n0;
+      f3 = n1;
+      f4 = n2;
+      f5 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">")"</span><span style="color: #2aa198;">)</span>;
+      f6 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"{"</span><span style="color: #2aa198;">)</span>;
+      f7 = n3;
+      f8 = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">NodeToken</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"}"</span><span style="color: #2aa198;">)</span>;
+   <span style="color: #8700af;">}</span>
 
-
-public class Fn 
-{
-}
-
-class JTBToolkit {
-   static NodeToken makeNodeToken(Token t) {
-      return new NodeToken(t.image.intern(), t.kind, t.beginLine, t.beginColumn, t.endLine, t.endColumn);
-   }
-}
-
-
-PARSER_END(Fn)
-
-SKIP :
-{
-   " "
-   | "\t"
-   | "\n"
-   | &lt;"#" (~["\n", "\r"])* ("\n" | "\r" | "\r\n")&gt;
-}
-
-TOKEN :
-{
-   &lt;FN: "fn"&gt;
-   | &lt;LPAREN: "("&gt;
-   | &lt;RPAREN: ")"&gt;
-   | &lt;LCURLY: "{"&gt;
-   | &lt;RCURLY: "}"&gt;
-   | &lt;TINT: "int"&gt;
-   | &lt;VAR: ["a"-"z"] (["a"-"z"] | ["0"-"9"])*&gt;
-   | &lt;ARROW: "-&gt;"&gt;
-   | &lt;N: ["1"-"9"] (["0"-"9"])*&gt;
-}
-
-Prog Prog() :
-{
-   Expr n0;
-   NodeToken n1;
-   Token n2;
-
-
-}
-{
-   n0=Expr()
-   n2=&lt;EOF&gt; { 
-      n2.beginColumn++; n2.endColumn++;
-      n1 = JTBToolkit.makeNodeToken(n2);
-   }
-
-   { return new Prog(n0,n1); }
-}
-
-Expr Expr() :
-{
-   NodeChoice n0;
-   NodeSequence n1;
-   Abs n2;
-   RApp n3;
-   NodeSequence n4;
-   Var n5;
-   RApp n6;
-   Int n7;
-
-
-}
-{
-   (
-      { n1 = new NodeSequence(2); }
-      n2=Abs()
-      { n1.addNode(n2); }
-      n3=RApp()
-      { n1.addNode(n3); }
-      { n0 = new NodeChoice(n1, 0); }
-   |
-      { n4 = new NodeSequence(2); }
-      n5=Var()
-      { n4.addNode(n5); }
-      n6=RApp()
-      { n4.addNode(n6); }
-      { n0 = new NodeChoice(n4, 1); }
-   |
-      n7=Int()
-      { n0 = new NodeChoice(n7, 2); }
-   )
-
-   { return new Expr(n0); }
-}
-
-Abs Abs() :
-{
-   NodeToken n0;
-   Token n1;
-   NodeToken n2;
-   Token n3;
-   RType n4;
-   NodeToken n5;
-   Token n6;
-   RParam n7;
-   NodeToken n8;
-   Token n9;
-   NodeToken n10;
-   Token n11;
-   Expr n12;
-   NodeToken n13;
-   Token n14;
-
-
-}
-{
-   n1=&lt;FN&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
-   n3="(" { n2 = JTBToolkit.makeNodeToken(n3); }
-   n4=RType()
-   n6=&lt;VAR&gt; { n5 = JTBToolkit.makeNodeToken(n6); }
-   n7=RParam()
-   n9=")" { n8 = JTBToolkit.makeNodeToken(n9); }
-   n11="{" { n10 = JTBToolkit.makeNodeToken(n11); }
-   n12=Expr()
-   n14="}" { n13 = JTBToolkit.makeNodeToken(n14); }
-
-   { return new Abs(n0,n2,n4,n5,n7,n8,n10,n12,n13); }
-}
-
-RParam RParam() :
-{
-   NodeOptional n0 = new NodeOptional();
-   NodeSequence n1;
-   NodeToken n2;
-   Token n3;
-   RType n4;
-   NodeToken n5;
-   Token n6;
-   RParam n7;
-
-
-}
-{
-   (
-      { n1 = new NodeSequence(4); }
-      n3="," { n2 = JTBToolkit.makeNodeToken(n3); }
-      { n1.addNode(n2); }
-      n4=RType()
-      { n1.addNode(n4); }
-      n6=&lt;VAR&gt; { n5 = JTBToolkit.makeNodeToken(n6); }
-      { n1.addNode(n5); }
-      n7=RParam()
-      { n1.addNode(n7); }
-      { n0.addNode(n1); }
-   )?
-
-   { return new RParam(n0); }
-}
-
-RApp RApp() :
-{
-   NodeOptional n0 = new NodeOptional();
-   NodeSequence n1;
-   NodeToken n2;
-   Token n3;
-   Expr n4;
-   RArg n5;
-   NodeToken n6;
-   Token n7;
-   RApp n8;
-
-
-}
-{
-   (
-      { n1 = new NodeSequence(5); }
-      n3="(" { n2 = JTBToolkit.makeNodeToken(n3); }
-      { n1.addNode(n2); }
-      n4=Expr()
-      { n1.addNode(n4); }
-      n5=RArg()
-      { n1.addNode(n5); }
-      n7=")" { n6 = JTBToolkit.makeNodeToken(n7); }
-      { n1.addNode(n6); }
-      n8=RApp()
-      { n1.addNode(n8); }
-      { n0.addNode(n1); }
-   )?
-
-   { return new RApp(n0); }
-}
-
-RArg RArg() :
-{
-   NodeOptional n0 = new NodeOptional();
-   NodeSequence n1;
-   NodeToken n2;
-   Token n3;
-   Expr n4;
-   RArg n5;
-
-
-}
-{
-   (
-      { n1 = new NodeSequence(3); }
-      n3="," { n2 = JTBToolkit.makeNodeToken(n3); }
-      { n1.addNode(n2); }
-      n4=Expr()
-      { n1.addNode(n4); }
-      n5=RArg()
-      { n1.addNode(n5); }
-      { n0.addNode(n1); }
-   )?
-
-   { return new RArg(n0); }
-}
-
-RType RType() :
-{
-   TInt n0;
-   NodeOptional n1 = new NodeOptional();
-   NodeSequence n2;
-   NodeToken n3;
-   Token n4;
-   RType n5;
-
-
-}
-{
-   n0=TInt()
-   (
-      { n2 = new NodeSequence(2); }
-      n4=&lt;ARROW&gt; { n3 = JTBToolkit.makeNodeToken(n4); }
-      { n2.addNode(n3); }
-      n5=RType()
-      { n2.addNode(n5); }
-      { n1.addNode(n2); }
-   )?
-
-   { return new RType(n0,n1); }
-}
-
-Var Var() :
-{
-   NodeToken n0;
-   Token n1;
-
-
-}
-{
-   n1=&lt;VAR&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
-
-   { return new Var(n0); }
-}
-
-Int Int() :
-{
-   NodeToken n0;
-   Token n1;
-
-
-}
-{
-   n1=&lt;N&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
-
-   { return new Int(n0); }
-}
-
-TInt TInt() :
-{
-   NodeToken n0;
-   Token n1;
-
-
-}
-{
-   n1=&lt;TINT&gt; { n0 = JTBToolkit.makeNodeToken(n1); }
-
-   { return new TInt(n0); }
-}
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">accept</span><span style="color: #8700af;">(</span><span style="color: #8700af;">visitor</span>.<span style="color: #af005f; font-weight: bold;">Visitor</span> <span style="color: #af5fd7;">v</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+      v.visit<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span><span style="color: #2aa198;">)</span>;
+   <span style="color: #8700af;">}</span>
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">R</span>,<span style="color: #af005f; font-weight: bold;">A</span><span style="color: #8700af;">&gt;</span> <span style="color: #af005f; font-weight: bold;">R</span> <span style="color: #8700af; font-weight: bold;">accept</span><span style="color: #8700af;">(</span><span style="color: #8700af;">visitor</span>.<span style="color: #af005f; font-weight: bold;">GJVisitor</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">R</span>,<span style="color: #af005f; font-weight: bold;">A</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">v</span>, <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #af5fd7;">argu</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+      <span style="color: #268bd2; font-weight: bold;">return</span> v.visit<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>,argu<span style="color: #2aa198;">)</span>;
+   <span style="color: #8700af;">}</span>
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">R</span><span style="color: #8700af;">&gt;</span> <span style="color: #af005f; font-weight: bold;">R</span> <span style="color: #8700af; font-weight: bold;">accept</span><span style="color: #8700af;">(</span><span style="color: #8700af;">visitor</span>.<span style="color: #af005f; font-weight: bold;">GJNoArguVisitor</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">R</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">v</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+      <span style="color: #268bd2; font-weight: bold;">return</span> v.visit<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span><span style="color: #2aa198;">)</span>;
+   <span style="color: #8700af;">}</span>
+   <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">A</span><span style="color: #8700af;">&gt;</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">accept</span><span style="color: #8700af;">(</span><span style="color: #8700af;">visitor</span>.<span style="color: #af005f; font-weight: bold;">GJVoidVisitor</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">A</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">v</span>, <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #af5fd7;">argu</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+      v.visit<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>,argu<span style="color: #2aa198;">)</span>;
+   <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
 </pre>
-</div></li>
+</div>
 
-<li>Visitor classes to subclass for implementation
 <ul class="org-ul">
-<li>e.g., <code>GJDepthFirst</code>, <code>DepthFirstVisitor</code></li>
+<li>What does each of the <code>accept</code> methods correspond to? Why?</li>
+</ul></li>
+</ul></li>
+
+<li><p>
+Visitor classes
+</p>
+
+<pre class="example">
+$ ls parser/visitor/
+DepthFirstVisitor.class GJNoArguVisitor.class   GJVoidVisitor.class
+DepthFirstVisitor.java  GJNoArguVisitor.java    GJVoidVisitor.java
+GJDepthFirst.class      GJVisitor.class         Visitor.class
+GJDepthFirst.java       GJVisitor.java          Visitor.java
+GJNoArguDepthFirst.java GJVoidDepthFirst.java
+$
+</pre>
+
+<ul class="org-ul">
+<li><p>
+Visitor classes <b>I</b> subclassed for implementation, <code>GJDepthFirst</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">package</span> <span style="color: #af005f; font-weight: bold;">analysis</span>;
+
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">syntaxtree</span>.*;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">visitor</span>.<span style="color: #af005f; font-weight: bold;">GJDepthFirst</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">java</span>.<span style="color: #8700af;">util</span>.<span style="color: #af005f; font-weight: bold;">HashMap</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">java</span>.<span style="color: #8700af;">util</span>.<span style="color: #af005f; font-weight: bold;">Vector</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">analysis</span>.<span style="color: #af005f; font-weight: bold;">Type</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">analysis</span>.<span style="color: #af005f; font-weight: bold;">ConstType</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">java</span>.<span style="color: #8700af;">util</span>.<span style="color: #af005f; font-weight: bold;">Enumeration</span>;
+
+<span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">TypeVisitor</span>
+    <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">GJDepthFirst</span><span style="color: #268bd2;">&lt;</span><span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">String</span>, <span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span><span style="color: #268bd2;">&gt;</span> <span style="color: #268bd2;">{</span>
+
+    <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">buildType</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">Type</span> <span style="color: #af5fd7;">t</span><span style="color: #8700af;">){</span>
+       <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">typeVec</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">&gt;()</span>;
+       typeVec.add<span style="color: #2aa198;">(</span>t<span style="color: #2aa198;">)</span>;
+       <span style="color: #268bd2; font-weight: bold;">return</span> typeVec;
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">buildType</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">ConstType</span> <span style="color: #af5fd7;">t</span><span style="color: #8700af;">){</span>
+        <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #5faf00;">(</span>t<span style="color: #5faf00;">)</span><span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #008787;">/**</span>
+<span style="color: #008787;">     * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> Expr()</span>
+<span style="color: #008787;">     * f1 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;EOF&gt;</span>
+<span style="color: #008787;">     */</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">Prog</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+        <span style="color: #268bd2; font-weight: bold;">return</span> n.f0.accept<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #008787;">/**</span>
+<span style="color: #008787;">     * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;N&gt;</span>
+<span style="color: #008787;">     */</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">Int</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+        <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #2aa198;">(</span><span style="color: #8700af;">ConstType</span>.INTEGER<span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #008787;">/**</span>
+<span style="color: #008787;">     * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;VAR&gt;</span>
+<span style="color: #008787;">     */</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">Var</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">String</span>, <span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">){</span>
+        <span style="color: #af005f; font-weight: bold;">String</span> <span style="color: #af5fd7;">varname</span> = n.f0.toString<span style="color: #2aa198;">()</span>;
+
+        <span style="color: #268bd2; font-weight: bold;">if</span><span style="color: #2aa198;">(</span> env.containsKey<span style="color: #5faf00;">(</span>varname<span style="color: #5faf00;">)</span> <span style="color: #2aa198;">){</span>
+            <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #5faf00;">(</span>env.get<span style="color: #875f00;">(</span>varname<span style="color: #875f00;">)</span><span style="color: #5faf00;">)</span>;
+        <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">else</span> <span style="color: #2aa198;">{</span>
+            <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #5faf00;">(</span><span style="color: #8700af;">ConstType</span>.NOPE<span style="color: #5faf00;">)</span>;
+        <span style="color: #2aa198;">}</span>
+    <span style="color: #8700af;">}</span>
+   <span style="color: #008787;">/**</span>
+<span style="color: #008787;">    * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;FN&gt;</span>
+<span style="color: #008787;">    * f1 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "("</span>
+<span style="color: #008787;">    * f2 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RType()</span>
+<span style="color: #008787;">    * f3 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;VAR&gt;</span>
+<span style="color: #008787;">    * f4 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RParam()</span>
+<span style="color: #008787;">    * f5 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> ")"</span>
+<span style="color: #008787;">    * f6 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "{"</span>
+<span style="color: #008787;">    * f7 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> Expr()</span>
+<span style="color: #008787;">    * f8 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "}"</span>
+<span style="color: #008787;">    */</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">Abs</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">){</span>
+        <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">get the type of the parameter</span>
+        <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">paramTypes</span> = n.f2.accept<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #2aa198;">)</span>;
+        <span style="color: #af005f; font-weight: bold;">Type</span> <span style="color: #af5fd7;">paramType</span>  = paramTypes.elementAt<span style="color: #2aa198;">(</span><span style="color: #8700af;">0</span><span style="color: #2aa198;">)</span>;
+
+        <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">add param id and type to the type environment (mapping)</span>
+        env.put<span style="color: #2aa198;">(</span>n.f3.toString<span style="color: #5faf00;">()</span>, paramType<span style="color: #2aa198;">)</span>;
+
+        <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">using the new environment get the type of the expression</span>
+        <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">exprTypes</span> = n.f7.accept<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #2aa198;">)</span>;
+        <span style="color: #af005f; font-weight: bold;">Type</span> <span style="color: #af5fd7;">exprType</span> = exprTypes.elementAt<span style="color: #2aa198;">(</span><span style="color: #8700af;">0</span><span style="color: #2aa198;">)</span>;
+
+        <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">construct the arrow type for the abstraction</span>
+        <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #5faf00;">(</span>paramType, exprType<span style="color: #5faf00;">)</span><span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #008787;">/**</span>
+<span style="color: #008787;">     * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> TInt()</span>
+<span style="color: #008787;">     * f1 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> ( </span><span style="color: #8700af;">&lt;ARROW&gt;</span><span style="color: #008787;"> RType() )?</span>
+<span style="color: #008787;">     */</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">RType</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+        <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">intType</span> = n.f0.accept<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #2aa198;">)</span>;
+        <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">rType</span> = n.f1.accept<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #2aa198;">)</span>;
+
+        <span style="color: #268bd2; font-weight: bold;">if</span><span style="color: #2aa198;">(</span> rType.elementAt<span style="color: #5faf00;">(</span><span style="color: #8700af;">0</span><span style="color: #5faf00;">)</span>.isEmpty<span style="color: #5faf00;">()</span> <span style="color: #2aa198;">){</span>
+            <span style="color: #268bd2; font-weight: bold;">return</span> intType;
+        <span style="color: #2aa198;">}</span>
+
+        <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #5faf00;">(</span>intType.elementAt<span style="color: #875f00;">(</span><span style="color: #8700af;">0</span><span style="color: #875f00;">)</span>, rType.elementAt<span style="color: #875f00;">(</span><span style="color: #8700af;">0</span><span style="color: #875f00;">)</span><span style="color: #5faf00;">)</span><span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #008787;">/**</span>
+<span style="color: #008787;">     * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;TINT&gt;</span>
+<span style="color: #008787;">     */</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">TInt</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+        <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #2aa198;">(</span><span style="color: #8700af;">ConstType</span>.INTEGER<span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #008787;">/**</span>
+<span style="color: #008787;">     * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> ( "(" Expr() ")" RApp() )?</span>
+<span style="color: #008787;">     */</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">RApp</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">){</span>
+        <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #d0bf8f;">NOTE</span><span style="color: #008787; background-color: #ffffff;"> returns null if the optional bit is not there (epsilon)</span>
+        <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">t</span> = n.f0.accept<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #2aa198;">)</span>;
+
+        <span style="color: #268bd2; font-weight: bold;">return</span> n.f0.accept<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+
+
+    <span style="color: #008787;">/**</span>
+<span style="color: #008787;">     * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> Abs() RApp()</span>
+<span style="color: #008787;">     *       | Int()</span>
+<span style="color: #008787;">     *       | Var() RApp()</span>
+<span style="color: #008787;">     */</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">Expr</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+        <span style="color: #af005f; font-weight: bold;">Type</span> <span style="color: #af5fd7;">first</span>, <span style="color: #af5fd7;">arg</span>, <span style="color: #af5fd7;">arrow</span>;
+
+        <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">list</span> = n.f0.accept<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #2aa198;">)</span>;
+
+        first = list.remove<span style="color: #2aa198;">(</span><span style="color: #8700af;">0</span><span style="color: #2aa198;">)</span>;
+
+        <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span> list.size<span style="color: #5faf00;">()</span> == <span style="color: #8700af;">0</span> <span style="color: #2aa198;">){</span>
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">Int() only</span>
+            <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #5faf00;">(</span>first<span style="color: #5faf00;">)</span>;
+        <span style="color: #2aa198;">}</span>
+
+        <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">if we're dealing with one of the RApp() cases</span>
+        <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">while we have parameters to check</span>
+        <span style="color: #268bd2; font-weight: bold;">while</span><span style="color: #2aa198;">(</span> <span style="color: #8700af;">!</span> list.isEmpty<span style="color: #5faf00;">()</span> <span style="color: #2aa198;">){</span>
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">grab the next argument type</span>
+            arg = list.remove<span style="color: #5faf00;">(</span><span style="color: #8700af;">0</span><span style="color: #5faf00;">)</span>;
+
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">we have more args than params</span>
+            <span style="color: #268bd2; font-weight: bold;">if</span><span style="color: #5faf00;">(</span> first == <span style="color: #8700af;">null</span> <span style="color: #5faf00;">){</span>
+                <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #875f00;">(</span><span style="color: #8700af;">ConstType</span>.NOPE<span style="color: #875f00;">)</span>;
+            <span style="color: #5faf00;">}</span>
+
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">the RApp() is empty we're at the end</span>
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">eg, Integer, Empty</span>
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">eg, Integer -&gt; Integer, Empty</span>
+            <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #5faf00;">(</span> arg.isEmpty<span style="color: #875f00;">()</span> <span style="color: #5faf00;">)</span> <span style="color: #5faf00;">{</span>
+                <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #875f00;">(</span>first<span style="color: #875f00;">)</span>;
+            <span style="color: #5faf00;">}</span>
+
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">if the arg ever doesn't match the param it's broken</span>
+            <span style="color: #268bd2; font-weight: bold;">if</span><span style="color: #5faf00;">(</span><span style="color: #8700af;">!</span> first.t1.equals<span style="color: #875f00;">(</span>arg<span style="color: #875f00;">)</span> <span style="color: #5faf00;">){</span>
+                <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #875f00;">(</span><span style="color: #8700af;">ConstType</span>.NOPE<span style="color: #875f00;">)</span>;
+            <span style="color: #5faf00;">}</span>
+
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">grab the next part of the arrow</span>
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">may return null, see first check above</span>
+            first = first.t2;
+        <span style="color: #2aa198;">}</span>
+
+        <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">java bro</span>
+        <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #2aa198;">(</span><span style="color: #8700af;">ConstType</span>.NOPE<span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+
+
+    <span style="color: #268bd2; font-weight: bold;">private</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">elementsToCollection</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">Enumeration</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">Node</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">e</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">){</span>
+        <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">&gt;</span> <span style="color: #af5fd7;">interim</span>, <span style="color: #af5fd7;">result</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #2aa198;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">&gt;()</span>;
+
+        <span style="color: #268bd2; font-weight: bold;">while</span> <span style="color: #2aa198;">(</span> e.hasMoreElements<span style="color: #5faf00;">()</span> <span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+            interim = e.nextElement<span style="color: #5faf00;">()</span>.accept<span style="color: #5faf00;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #5faf00;">)</span>;
+
+            <span style="color: #268bd2; font-weight: bold;">if</span><span style="color: #5faf00;">(</span> interim != <span style="color: #8700af;">null</span> <span style="color: #5faf00;">){</span>
+                result.addAll<span style="color: #875f00;">(</span>interim<span style="color: #875f00;">)</span>;
+            <span style="color: #5faf00;">}</span>
+        <span style="color: #2aa198;">}</span>
+
+        <span style="color: #268bd2; font-weight: bold;">return</span> result;
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">NodeSequence</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+        <span style="color: #268bd2; font-weight: bold;">return</span> elementsToCollection<span style="color: #2aa198;">(</span>n.elements<span style="color: #5faf00;">()</span>, env<span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">NodeList</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+        <span style="color: #268bd2; font-weight: bold;">return</span> elementsToCollection<span style="color: #2aa198;">(</span>n.elements<span style="color: #5faf00;">()</span>, env<span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">NodeListOptional</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+        <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span> n.present<span style="color: #5faf00;">()</span> <span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+            <span style="color: #268bd2; font-weight: bold;">return</span> elementsToCollection<span style="color: #5faf00;">(</span>n.elements<span style="color: #875f00;">()</span>, env<span style="color: #5faf00;">)</span>;
+        <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">else</span> <span style="color: #2aa198;">{</span>
+            <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #5faf00;">(</span><span style="color: #8700af;">ConstType</span>.EMPTY<span style="color: #5faf00;">)</span>;
+        <span style="color: #2aa198;">}</span>
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">NodeOptional</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+        <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span> n.present<span style="color: #5faf00;">()</span> <span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+            <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #5faf00;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #5faf00;">&gt;</span> <span style="color: #af5fd7;">t</span> = n.node.accept<span style="color: #5faf00;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #5faf00;">)</span>;
+
+            <span style="color: #268bd2; font-weight: bold;">return</span> t;
+        <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">else</span> <span style="color: #2aa198;">{</span>
+            <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #5faf00;">(</span><span style="color: #8700af;">ConstType</span>.EMPTY<span style="color: #5faf00;">)</span>;
+        <span style="color: #2aa198;">}</span>
+    <span style="color: #8700af;">}</span>
+
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">NodeToken</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #8700af;">)</span> <span style="color: #8700af;">{</span>
+        <span style="color: #268bd2; font-weight: bold;">return</span> <span style="color: #8700af;">null</span>;
+    <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>What does each of the methods correspond to? Why?</li>
+</ul></li>
+</ul></li>
 </ul></li>
 </ul></li>
 
 <li>What does "GJ" stand for? 
 <ul class="org-ul">
+<li>Why do we care?
+<ul class="org-ul">
 <li><p>
-Why do we care?
-</p>
-<ul class="org-ul">
-<li>The visitor super class can be parameterized over an argument and
+The visitor superclass can be parameterized over an argument and
 return type for each <code>accept/visit</code> method.
-<ul class="org-ul">
-<li>recall the type rules!</li>
+</p>
+
+<pre class="example">
+T, id : t1 |- e : t2 
+------------------------------- abs
+T |- fn(t1 id) { e } : t1 -&gt; t2
+</pre></li>
+
+<li><code>T</code> is the argument, and <code>t2</code> / <code>t1 -&gt; t2</code> are the return for our visitor
+methods</li>
+
+<li>Pass down a type environment, return expression/statement type</li>
+<li>Definition of the type environment and type are up to you</li>
 </ul></li>
-<li>Normal visitor relies entirely on side effects <code>void</code> return type and no
-arguments.</li>
-<li>In our case pass down a type environment, return expression/statement type</li>
-</ul>
+</ul></li>
+
+<li><p>
+Example visitor method
+</p>
 <div class="org-src-container">
 
 <pre class="src src-java">...
 <span style="color: #008787;">/**</span>
-<span style="color: #008787;"> * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;FN&gt;</span>
-<span style="color: #008787;"> * f1 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "("</span>
-<span style="color: #008787;"> * f2 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RType()</span>
-<span style="color: #008787;"> * f3 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;VAR&gt;</span>
-<span style="color: #008787;"> * f4 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> ")"</span>
-<span style="color: #008787;"> * f5 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "{"</span>
-<span style="color: #008787;"> * f6 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> Expr()</span>
-<span style="color: #008787;"> * f7 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "}"</span>
-<span style="color: #008787;"> */</span>
+<span style="color: #008787;">* f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;FN&gt;</span>
+<span style="color: #008787;">* f1 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "("</span>
+<span style="color: #008787;">* f2 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RType()</span>
+<span style="color: #008787;">* f3 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;VAR&gt;</span>
+<span style="color: #008787;">* f4 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RParam()</span>
+<span style="color: #008787;">* f5 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> ")"</span>
+<span style="color: #008787;">* f6 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "{"</span>
+<span style="color: #008787;">* f7 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> Expr()</span>
+<span style="color: #008787;">* f8 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "}"</span>
+<span style="color: #008787;">*/</span>
 <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #268bd2;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #268bd2;">&gt;</span> visit<span style="color: #268bd2;">(</span><span style="color: #af005f; font-weight: bold;">Abs</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #268bd2;">){</span>
     <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">get the type of the parameter</span>
     <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #af5fd7;">paramTypes</span> = n.f2.accept<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #8700af;">)</span>;
@@ -1498,7 +1837,7 @@ arguments.</li>
     env.put<span style="color: #8700af;">(</span>n.f3.toString<span style="color: #2aa198;">()</span>, paramType<span style="color: #8700af;">)</span>;
 
     <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">using the new environment get the type of the expression</span>
-    <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #af5fd7;">exprTypes</span> = n.f6.accept<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #8700af;">)</span>;
+    <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #af5fd7;">exprTypes</span> = n.f7.accept<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #8700af;">)</span>;
     <span style="color: #af005f; font-weight: bold;">Type</span> <span style="color: #af5fd7;">exprType</span> = exprTypes.elementAt<span style="color: #8700af;">(</span><span style="color: #8700af;">0</span><span style="color: #8700af;">)</span>;
 
     <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">construct the arrow type for the abstraction</span>
@@ -1506,11 +1845,240 @@ arguments.</li>
 <span style="color: #268bd2;">}</span>
 ...
 </pre>
+</div>
+
+<ul class="org-ul">
+<li><p>
+Breakdown
+</p>
+
+<pre class="example">
+T, id : t1 |- e : t2 
+------------------------------- abs
+T |- fn(t1 id) { e } : t1 -&gt; t2
+</pre>
+
+<ul class="org-ul">
+<li>We need to do three things to type check <code>fn(t1 id) { e }</code>
+
+<ol class="org-ol">
+<li>get the concrete type <code>t1</code>, eg <code>nat</code> or <code>nat -&gt; (nat -&gt; nat)</code></li>
+<li>get the type of <code>e</code></li>
+<li>produce/return some type <code>t1 -&gt; t2</code></li>
+</ol></li>
+
+<li>This corresponds to two chunks of code in the method:
+
+<ol class="org-ol">
+<li><p>
+the type <code>t1</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #008787;">/**</span>
+<span style="color: #008787;">* f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;FN&gt;</span>
+<span style="color: #008787;">* f1 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "("</span>
+<span style="color: #008787;">* f2 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RType()</span>
+<span style="color: #008787;">* f3 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;VAR&gt;</span>
+<span style="color: #008787;">* f4 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RParam()</span>
+<span style="color: #008787;">* f5 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> ")"</span>
+<span style="color: #008787;">* f6 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "{"</span>
+<span style="color: #008787;">* f7 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> Expr()</span>
+<span style="color: #008787;">* f8 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "}"</span>
+<span style="color: #008787;">*/</span>
+<span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #268bd2;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #268bd2;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #268bd2;">(</span><span style="color: #af005f; font-weight: bold;">Abs</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #268bd2;">){</span>
+    <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">get the type of the parameter from f2 by sending the vistor </span>
+    <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">down the tree of that declared type</span>
+    <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #af5fd7;">paramTypes</span> = n.f2.accept<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #8700af;">)</span>;
+
+    <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">implementation detail of my representation of types</span>
+    <span style="color: #af005f; font-weight: bold;">Type</span> <span style="color: #af5fd7;">paramType</span>  = paramTypes.elementAt<span style="color: #8700af;">(</span><span style="color: #8700af;">0</span><span style="color: #8700af;">)</span>;
+
+    ...
+<span style="color: #268bd2;">}</span>
+</pre>
 </div></li>
+
+<li><p>
+the type of <code>e</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #008787;">/**</span>
+<span style="color: #008787;">* f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;FN&gt;</span>
+<span style="color: #008787;">* f1 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "("</span>
+<span style="color: #008787;">* f2 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RType()</span>
+<span style="color: #008787;">* f3 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;VAR&gt;</span>
+<span style="color: #008787;">* f4 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RParam()</span>
+<span style="color: #008787;">* f5 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> ")"</span>
+<span style="color: #008787;">* f6 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "{"</span>
+<span style="color: #008787;">* f7 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> Expr()</span>
+<span style="color: #008787;">* f8 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "}"</span>
+<span style="color: #008787;">*/</span>
+<span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #268bd2;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #268bd2;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #268bd2;">(</span><span style="color: #af005f; font-weight: bold;">Abs</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #268bd2;">){</span>
+  ...
+
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">add param id and type to the type environment </span>
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">that is, extend the type environment `T, id : t1`</span>
+  env.put<span style="color: #8700af;">(</span>n.f3.toString<span style="color: #2aa198;">()</span>, paramType<span style="color: #8700af;">)</span>;
+
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">using the new environment get the type of the expression</span>
+  <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #af5fd7;">exprTypes</span> = n.f7.accept<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #8700af;">)</span>;
+
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">again implementaiton detail of type construction</span>
+  <span style="color: #af005f; font-weight: bold;">Type</span> <span style="color: #af5fd7;">exprType</span> = exprTypes.elementAt<span style="color: #8700af;">(</span><span style="color: #8700af;">0</span><span style="color: #8700af;">)</span>;
+
+  ... 
+<span style="color: #268bd2;">}</span>
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>How might my implementation as a <code>HashMap</code> cause problems?
+<ul class="org-ul">
+<li>Hint: what happens when a variable gets shadowed?</li>
+</ul></li>
+</ul></li>
+
+<li><p>
+return the type <code>t1 -&gt; t2</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #008787;">/**</span>
+<span style="color: #008787;">* f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;FN&gt;</span>
+<span style="color: #008787;">* f1 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "("</span>
+<span style="color: #008787;">* f2 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RType()</span>
+<span style="color: #008787;">* f3 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;VAR&gt;</span>
+<span style="color: #008787;">* f4 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> RParam()</span>
+<span style="color: #008787;">* f5 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> ")"</span>
+<span style="color: #008787;">* f6 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "{"</span>
+<span style="color: #008787;">* f7 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> Expr()</span>
+<span style="color: #008787;">* f8 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> "}"</span>
+<span style="color: #008787;">*/</span>
+<span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #268bd2;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #268bd2;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #268bd2;">(</span><span style="color: #af005f; font-weight: bold;">Abs</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #268bd2;">){</span>
+  ...
+
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">construct the arrow type for the abstraction</span>
+  <span style="color: #268bd2; font-weight: bold;">return</span> buildType<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #2aa198;">(</span>paramType, exprType<span style="color: #2aa198;">)</span><span style="color: #8700af;">)</span>;
+<span style="color: #268bd2;">}</span>
+</pre>
+</div></li>
+</ol></li>
+</ul></li>
+</ul></li>
+
+<li><p>
+Bringing it together
+</p>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">parser</span>.<span style="color: #af005f; font-weight: bold;">Fn</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">parser</span>.<span style="color: #af005f; font-weight: bold;">ParseException</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">syntaxtree</span>.<span style="color: #af005f; font-weight: bold;">Prog</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">analysis</span>.<span style="color: #af005f; font-weight: bold;">PrintVisitor</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">analysis</span>.<span style="color: #af005f; font-weight: bold;">TypeVisitor</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">analysis</span>.<span style="color: #af005f; font-weight: bold;">Type</span>;
+<span style="color: #268bd2; font-weight: bold;">import</span> <span style="color: #8700af;">java</span>.<span style="color: #8700af;">util</span>.<span style="color: #af005f; font-weight: bold;">HashMap</span>;
+
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">Parse</span> <span style="color: #268bd2;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">main</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">String</span> <span style="color: #af5fd7;">args</span><span style="color: #2aa198;">[]</span><span style="color: #8700af;">){</span>
+        <span style="color: #268bd2; font-weight: bold;">try</span> <span style="color: #2aa198;">{</span>
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">create the AST from the parse of stdin</span>
+            <span style="color: #af005f; font-weight: bold;">Prog</span> <span style="color: #af5fd7;">p</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Fn</span><span style="color: #5faf00;">(</span>System.in<span style="color: #5faf00;">)</span>.Prog<span style="color: #5faf00;">()</span>;
+
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">set up a new visitor to traverse the tree</span>
+            <span style="color: #af005f; font-weight: bold;">TypeVisitor</span> <span style="color: #af5fd7;">visitor</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">TypeVisitor</span><span style="color: #5faf00;">()</span>;
+
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">set up an empty type environment</span>
+            <span style="color: #af005f; font-weight: bold;">HashMap</span><span style="color: #5faf00;">&lt;</span><span style="color: #af005f; font-weight: bold;">String</span>, <span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #5faf00;">&gt;</span> <span style="color: #af5fd7;">typeEnv</span>= <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">HashMap</span><span style="color: #5faf00;">&lt;</span><span style="color: #af005f; font-weight: bold;">String</span>, <span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #5faf00;">&gt;()</span>;
+
+            <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">traverse the tree and print out the returned type</span>
+            System.out.println<span style="color: #5faf00;">(</span>p.accept<span style="color: #875f00;">(</span>visitor, typeEnv<span style="color: #875f00;">)</span><span style="color: #5faf00;">)</span>;
+        <span style="color: #2aa198;">}</span> <span style="color: #268bd2; font-weight: bold;">catch</span> <span style="color: #2aa198;">(</span><span style="color: #af005f; font-weight: bold;">ParseException</span> <span style="color: #af5fd7;">e</span><span style="color: #2aa198;">){</span>
+            System.out.println<span style="color: #5faf00;">(</span>e.toString<span style="color: #875f00;">()</span><span style="color: #5faf00;">)</span>;
+        <span style="color: #2aa198;">}</span>
+    <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>A short trace of visitor execution:
+<ul class="org-ul">
+<li><p>
+<code>main</code> calls <code>Prog#accept</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #af005f; font-weight: bold;">Prog</span> <span style="color: #af5fd7;">p</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Fn</span><span style="color: #268bd2;">(</span>System.in<span style="color: #268bd2;">)</span>.Prog<span style="color: #268bd2;">()</span>;
+<span style="color: #af005f; font-weight: bold;">TypeVisitor</span> <span style="color: #af5fd7;">visitor</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">TypeVisitor</span><span style="color: #268bd2;">()</span>;
+<span style="color: #af005f; font-weight: bold;">HashMap</span><span style="color: #268bd2;">&lt;</span><span style="color: #af005f; font-weight: bold;">String</span>, <span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #268bd2;">&gt;</span> <span style="color: #af5fd7;">typeEnv</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">HashMap</span><span style="color: #268bd2;">&lt;</span><span style="color: #af005f; font-weight: bold;">String</span>, <span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #268bd2;">&gt;()</span>;
+p.accept<span style="color: #268bd2;">(</span>visitor, typeEnv<span style="color: #268bd2;">)</span>;
+</pre>
+</div></li>
+
+<li><p>
+<code>Prog#accept</code> calls <code>TypeVisitor#visit</code> with itself/type env
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #268bd2;">&lt;</span><span style="color: #af005f; font-weight: bold;">R</span>,<span style="color: #af005f; font-weight: bold;">A</span><span style="color: #268bd2;">&gt;</span> <span style="color: #af005f; font-weight: bold;">R</span> <span style="color: #8700af; font-weight: bold;">accept</span><span style="color: #268bd2;">(</span><span style="color: #8700af;">visitor</span>.<span style="color: #af005f; font-weight: bold;">GJVisitor</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">R</span>,<span style="color: #af005f; font-weight: bold;">A</span><span style="color: #8700af;">&gt;</span> <span style="color: #af5fd7;">v</span>, <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #af5fd7;">argu</span><span style="color: #268bd2;">)</span> <span style="color: #268bd2;">{</span>
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">v is our TypeVisitor</span>
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">argu is our TypeEnv</span>
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">this is the Prog object</span>
+  <span style="color: #268bd2; font-weight: bold;">return</span> v.visit<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>,argu<span style="color: #8700af;">)</span>;
+<span style="color: #268bd2;">}</span>
+</pre>
+</div></li>
+
+<li><p>
+<code>TypeVisitor#visit</code> calls <code>Expr#accept</code> with itself/type env
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #008787;">/**</span>
+<span style="color: #008787;"> * f0 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> Expr()</span>
+<span style="color: #008787;"> * f1 -</span><span style="color: #dc752f; background-color: #ffffff;">&gt;</span><span style="color: #008787;"> </span><span style="color: #8700af;">&lt;EOF&gt;</span>
+<span style="color: #008787;"> */</span>
+<span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #268bd2;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #268bd2;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #268bd2;">(</span><span style="color: #af005f; font-weight: bold;">Prog</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #268bd2;">)</span> <span style="color: #268bd2;">{</span>
+  <span style="color: #268bd2; font-weight: bold;">return</span> n.f0.accept<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #8700af;">)</span>;
+<span style="color: #268bd2;">}</span>
+</pre>
+</div></li>
+
+<li>&#x2026; some more calls &#x2026;</li>
+
+<li><p>
+<code>TypeVisitor#visit</code> does some - <b>gasp</b> - actual checking!
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #268bd2;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #268bd2;">&gt;</span> <span style="color: #8700af; font-weight: bold;">visit</span><span style="color: #268bd2;">(</span><span style="color: #af005f; font-weight: bold;">Abs</span> <span style="color: #af5fd7;">n</span>, <span style="color: #af005f; font-weight: bold;">HashMap</span> <span style="color: #af5fd7;">env</span><span style="color: #268bd2;">){</span>
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">get the type of the parameter from f2 by sending the vistor </span>
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">down the tree of that declared type</span>
+  <span style="color: #af005f; font-weight: bold;">Vector</span><span style="color: #8700af;">&lt;</span><span style="color: #af005f; font-weight: bold;">Type</span><span style="color: #8700af;">&gt;</span> <span style="color: #af5fd7;">paramTypes</span> = n.f2.accept<span style="color: #8700af;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>, env<span style="color: #8700af;">)</span>;
+
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">implementation detail of my representation of types</span>
+  <span style="color: #af005f; font-weight: bold;">Type</span> <span style="color: #af5fd7;">paramType</span>  = paramTypes.elementAt<span style="color: #8700af;">(</span><span style="color: #8700af;">0</span><span style="color: #8700af;">)</span>;
+
+  ...
+<span style="color: #268bd2;">}</span>
+</pre>
+</div></li>
+</ul></li>
 </ul></li>
 </ul>
 </div>
 </div>
+
 
 <div id="outline-container-orgheadline4" class="outline-2">
 <h2 id="orgheadline4"><span class="section-number-2">4</span> Parsing expression grammars</h2>
@@ -1540,7 +2108,7 @@ A -&gt; B | C | D
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: John Bender</p>
-<p class="date">Created: 2016-04-11 Mon 14:38</p>
+<p class="date">Created: 2016-04-14 Thu 22:06</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

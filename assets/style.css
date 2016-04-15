@@ -36,6 +36,8 @@ ul {
   margin-bottom: 10px;
 }
 
+li { margin-top: 0.6em; }
+
 li p {
   margin-top: 0.5em;
 }

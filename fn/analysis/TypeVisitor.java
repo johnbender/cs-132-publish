@@ -34,7 +34,7 @@ public class TypeVisitor
      */
     public Vector<Type> visit(Int n, HashMap env) {
         return buildType(ConstType.INTEGER);
-    }
+
 
     /**
      * f0 -> <VAR>
