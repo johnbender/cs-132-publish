@@ -1,0 +1,59 @@
+#+HTML_HEAD: <link href="./assets/bootstrap.min.css" rel="stylesheet">
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+#+HTML_HEAD: <script src="./assets/jquery-1.7.1.js"></script>
+#+HTML_HEAD: <script src="./assets/site.js"></script>
+#+TITLE: MiniJava Type System
+#+OPTIONS: toc:nil
+
+* Type system
+- Rules
+- Questions
+  - Goal
+    - Why do the class names need to be distinct? 
+      - Could we just use the last one?
+      - Why would that be bad?
+    - What might we ignore here to simplify our type checker a lot?
+
+  - Main Class
+    - (Piazza) What is bottom? How is it used in the rules?
+      - In other words, what is the impact of checking the method body ~C = ⊥~?
+        - rule 44 
+
+  - Type Declarations
+    - (Piazza) What should we do without forward declarations?
+
+      #+begin_src java
+      class B extends A {
+        // ...
+      }
+
+      class A {
+        // ...
+      }
+      #+end_src
+
+      - Do we need to check that ~B~ "properly" extends ~A~ at this level?
+      - What does it mean to "properly" extend ~A~?
+
+    - What's the difference between rule 23 and 24?
+      - Can you delay overload checking?
+        - Why is that hard/different?
+
+    - (Piazza) How does overload checking traverse the inheritance tree?
+      - Rule 24
+
+  - Statements
+  - Expressions
+    - What is the difference between a statement and expression?
+      - Why do we do this at all?
+      - How can you define a sequence of "statements" as an expression?
+
+  - Method Declarations
+    - Why are the fields and method identifiers treated as lists/vectors and not
+      sets in rule 25?
+  - 
+- Piazza/Other Questions about MiniJava Type System
+  - What is ~C~ in the rules? How is it used?
+
+    
+ 
