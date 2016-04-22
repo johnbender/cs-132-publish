@@ -20,6 +20,8 @@
         - rule 44 
 
   - Type Declarations
+    - What is ~C~ in the rules? How is it used?
+
     - (Piazza) What should we do without forward declarations?
 
       #+begin_src java
@@ -42,18 +44,81 @@
     - (Piazza) How does overload checking traverse the inheritance tree?
       - Rule 24
 
-  - Statements
-  - Expressions
-    - What is the difference between a statement and expression?
-      - Why do we do this at all?
-      - How can you define a sequence of "statements" as an expression?
+      #+begin_src java
+      class A {
+          public int[] m() {
+            ...
+          }
+      }
+
+      class B extends A {
+        ...
+      }
+
+      class C extends B {
+          public int m() {
+            ...
+          }
+      }
+      #+end_src
+
+      - Intuitively why shouldn't this typecheck?
+      - How does the type system exclude these class definitions?
+        - Rules 20, 19, 16
 
   - Method Declarations
     - Why are the fields and method identifiers treated as lists/vectors and not
       sets in rule 25?
-  - 
-- Piazza/Other Questions about MiniJava Type System
-  - What is ~C~ in the rules? How is it used?
+    - What does the ~distinct~ predicate prevent here?
+    - What is the consequence of appending the parameters and locals to the
+      *front* of ~fields(C)~?
+      
+  - Statements
+    - What is the difference between a statement and expression?
+      - Why do we do this at all?
+      - How can you define a sequence of "statements" as an expression?
 
-    
- 
+    - Rule 26 
+      - What are the brackets here for? Where is the type error in the follow
+        code?
+        
+        #+begin_src java
+        class Foo {
+            public static void main(String args[]){
+                int x = 1;
+
+                {
+                    int y = 1;
+                    System.out.println(x);
+                    System.out.println(y);
+                }
+
+                System.out.println(x);
+                System.out.println(y);
+            }
+        }
+        #+end_src
+        
+      - Does this matter in minijava?
+      - How would you support it?
+        
+        #+begin_src rule
+        A,C |- si  i ∈ 1...q
+        --------------------
+        A,C |- { s1 ... sq }
+
+        A ᐧ [id1 : t1, ..., idr : tr] ,C |- si  i ∈ 1...q
+        --------------------------------------------------
+        A,C |- { t1 id1; ... tr idr; s1 ... sq }
+        #+end_src
+
+    - Rule 29
+      - How would this rule be different ~if e1 then e2 else e3~ were an
+        expression?
+      - What does this mean for expressions v statements?
+
+  - Expressions
+    - Rule 39 
+      
+  
+  
