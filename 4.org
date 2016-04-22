@@ -2,123 +2,225 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./assets/style.css" />
 #+HTML_HEAD: <script src="./assets/jquery-1.7.1.js"></script>
 #+HTML_HEAD: <script src="./assets/site.js"></script>
-#+TITLE: MiniJava Type System
+#+TITLE: MiniJava Type System, Vapor Semantics
 #+OPTIONS: toc:nil
 
-* Type system
-- Rules
-- Questions
-  - Goal
-    - Why do the class names need to be distinct? 
-      - Could we just use the last one?
-      - Why would that be bad?
-    - What might we ignore here to simplify our type checker a lot?
+* MiniJava Type system
+- Goal
+  - Why do the class names need to be distinct? 
+    - Could we just use the last one?
+    - Why would that be bad?
+  - What might we ignore here to simplify our type checker a lot?
 
-  - Main Class
-    - (Piazza) What is bottom? How is it used in the rules?
-      - In other words, what is the impact of checking the method body ~C = ⊥~?
-        - rule 44 
+- Main Class
+  - (Piazza) What is bottom? How is it used in the rules?
+    - In other words, what is the impact of checking the method body ~C = ⊥~?
+      - rule 44 
 
-  - Type Declarations
-    - What is ~C~ in the rules? How is it used?
+- Type Declarations
+  - What is ~C~ in the rules? How is it used?
 
-    - (Piazza) What should we do without forward declarations?
+  - (Piazza) What should we do without forward declarations?
 
-      #+begin_src java
-      class B extends A {
-        // ...
-      }
+    #+begin_src java
+    class B extends A {
+      // ...
+    }
 
-      class A {
-        // ...
-      }
-      #+end_src
+    class A {
+      // ...
+    }
+    #+end_src
 
-      - Do we need to check that ~B~ "properly" extends ~A~ at this level?
-      - What does it mean to "properly" extend ~A~?
+    - Do we need to check that ~B~ "properly" extends ~A~ at this level?
+    - What does it mean to "properly" extend ~A~?
 
-    - What's the difference between rule 23 and 24?
-      - Can you delay overload checking?
-        - Why is that hard/different?
+  - What's the difference between rule 23 and 24?
+    - Can you delay overload checking?
+      - Why is that hard/different?
 
-    - (Piazza) How does overload checking traverse the inheritance tree?
-      - Rule 24
+  - (Piazza) How does overload checking traverse the inheritance tree?
+    - Rule 24
 
-      #+begin_src java
-      class A {
-          public int[] m() {
-            ...
-          }
-      }
-
-      class B extends A {
-        ...
-      }
-
-      class C extends B {
-          public int m() {
-            ...
-          }
-      }
-      #+end_src
-
-      - Intuitively why shouldn't this typecheck?
-      - How does the type system exclude these class definitions?
-        - Rules 20, 19, 16
-
-  - Method Declarations
-    - Why are the fields and method identifiers treated as lists/vectors and not
-      sets in rule 25?
-    - What does the ~distinct~ predicate prevent here?
-    - What is the consequence of appending the parameters and locals to the
-      *front* of ~fields(C)~?
-      
-  - Statements
-    - What is the difference between a statement and expression?
-      - Why do we do this at all?
-      - How can you define a sequence of "statements" as an expression?
-
-    - Rule 26 
-      - What are the brackets here for? Where is the type error in the follow
-        code?
-        
-        #+begin_src java
-        class Foo {
-            public static void main(String args[]){
-                int x = 1;
-
-                {
-                    int y = 1;
-                    System.out.println(x);
-                    System.out.println(y);
-                }
-
-                System.out.println(x);
-                System.out.println(y);
-            }
+    #+begin_src java
+    class A {
+        public int[] m() {
+          ...
         }
-        #+end_src
-        
-      - Does this matter in minijava?
-      - How would you support it?
-        
-        #+begin_src rule
-        A,C |- si  i ∈ 1...q
-        --------------------
-        A,C |- { s1 ... sq }
+    }
 
-        A ᐧ [id1 : t1, ..., idr : tr] ,C |- si  i ∈ 1...q
-        --------------------------------------------------
-        A,C |- { t1 id1; ... tr idr; s1 ... sq }
-        #+end_src
+    class B extends A {
+      ...
+    }
 
-    - Rule 29
-      - How would this rule be different ~if e1 then e2 else e3~ were an
-        expression?
-      - What does this mean for expressions v statements?
+    class C extends B {
+        public int m() {
+          ...
+        }
+    }
+    #+end_src
 
-  - Expressions
-    - Rule 39 
+    - Intuitively why shouldn't this typecheck?
+    - How does the type system exclude these class definitions?
+      - Rules 20, 19, 16
+
+- Method Declarations
+  - Why are the fields and method identifiers treated as lists/vectors and not
+    sets in rule 25?
+  - What does the ~distinct~ predicate prevent here?
+  - What is the consequence of appending the parameters and locals to the
+    *front* of ~fields(C)~?
+
+- Statements
+  - What is the difference between a statement and expression?
+    - Why do we do this at all?
+    - How can you define a sequence of "statements" as an expression?
+
+  - Rule 26 
+    - What are the brackets here for? Where is the type error in the follow
+      code?
+
+      #+begin_src java
+      class Foo {
+          public static void main(String args[]){
+              int x = 1;
+
+              {
+                  int y = 1;
+                  System.out.println(x);
+                  System.out.println(y);
+              }
+
+              System.out.println(x);
+              System.out.println(y);
+          }
+      }
+      #+end_src
+
+    - Does this matter in minijava?
+    - How would you support it?
+
+      #+begin_src rule
+      A,C |- si  i ∈ 1...q
+      --------------------
+      A,C |- { s1 ... sq }
+
+      A ᐧ [id1 : t1, ..., idr : tr] ,C |- si  i ∈ 1...q
+      --------------------------------------------------
+      A,C |- { t1 id1; ... tr idr; s1 ... sq }
+      #+end_src
+
+  - Rule 29
+    - How would this rule be different ~if e1 then e2 else e3~ were an
+      expression?
+    - What does this mean for expressions v statements?
+
+- Expressions
+  - Rule 39 
+
+* Vapor Semantics
+- Ignoring for now MiniJava -> Vapor
+- Draw legend for state symbols
+- High Level Questions
+  - Is the semantics hard to read or understand? Why?
+  - If you were to write a semantics for Java/C would it be more/less/similarly
+    complex?
+  - How does the complexity of the semantics relate to the complexity of
+    programming in/reading Vapor?
+    - Factorial in Java:
+
+      #+begin_src java
+      class Factorial{
+          public static void main(String[] a){
+              System.out.println(new Fac().ComputeFac(10));
+          }
+      }
+
+      class Fac {
+          public int ComputeFac(int num){
+              int num_aux ;
+              if (num < 1)
+                  num_aux = 1 ;
+              else
+                  num_aux = num * (this.ComputeFac(num-1)) ;
+              return num_aux ;
+          }
+      }
+      #+end_src
+
+    - A hacked together Vapor version (not tested):
+
+      #+begin_src vapor
+      const vmt_Fac
+        :Fac.ComputeFac
+
+      func Main()
+        t.0 = call :Fac.ComputeFac(10)
+        PrintIntS(t.0)
+        ret
+
+      func Fac.ComputeFac(num)
+        t.0 = LtS(num 1)
+        if0 t.0 goto :if1_else
+          num_aux = 1
+          goto :if1_end
+        if1_else:
+          t.0 = Sub(num 1)
+          t.1 = call :Fac.ComputeFac(t.0)
+          num_aux = MulS(num t.1)
+        if1_end:
+        ret num_aux
+      #+end_src
+
+  - What accounts for the seeming complexity of the formal semantics relative to
+    our intuition of the program?
+    - Is it just tedious notation?
+- Initial Program State
+  - What is in ~G~? Why will we need it?
+  - What is the initial state of ~S~?
+  - Where does ~b1~ come from? 
+  - Why is it that ~b = b1~?
+- Rules
+  - What does this mean: ~(G, H, R, E, S, b b') -> (G', H', R′, E′, S', b′)~? 
+    - Side conditions vs Hypothesis?
+  - Rule 1
+    - ~o~ can be a label, an integer, or and identifier how does ~(R, E)*(o)~
+      handle each case? (See More Helper functions)
+    - Will ~update~ replace a previous value of ~id~ in ~R ᐧE~ ? 
+  - Rule 2 
+    - Similar to Rule 1
+  - Rule 3
+    - What does ~(l, c1)~ represent?
+      - "Vapor has three kinds of values: labels ~l~, heap addresses ~(l, c)~, and
+        integers ~c~. We use ~v~ to range over values."
+    - What is the use of this special case?
+    - What will be stored in ~id~?
+  - Rule 4
+    - Note that the formal semantics doesn't support all pointer arithmetic
+  - Rules 5 - 7
+  - Rules 8 and 9
+    - Value outcome is integral
+  - Rule 10
+    - Is an offset always necessary to do a load from the heap?
+      - http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-examples/Factorial.vapor
+    - What would the global label offset be pointing to?
+    - What happens in the semantics if ~c'+n > n~?
+  - Rule 11 - 13
+    - What is S'?
+  - Rule 14 
+    - This is heap mutation, but where is the heap mutated?
+  - Rule 15 - 17
+  - Rule 18 and 19
+    - Very generally, why must the labels be in the same function?
+    - What happens in 19?
+  - Rule 20 
+    - Intuitively what does this rule evaluate/define in the semantics?
+  - Rule 21
+    - Why is the different from Rule 20?
+- Why do we need the multistep rule?
+
+
+
+
+
       
-  
-  
