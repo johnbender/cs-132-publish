@@ -171,7 +171,6 @@
         if1_end:
         ret num_aux
       #+end_src
-
   - What accounts for the seeming complexity of the formal semantics relative to
     our intuition of the program?
     - Is it just tedious notation?
@@ -195,6 +194,8 @@
         integers ~c~. We use ~v~ to range over values."
     - What is the use of this special case?
     - What will be stored in ~id~?
+      
+      [ l0 -> < ... >, ..., ln -> < ... >
   - Rule 4
     - Note that the formal semantics doesn't support all pointer arithmetic
   - Rules 5 - 7
@@ -211,7 +212,7 @@
     - This is heap mutation, but where is the heap mutated?
   - Rule 15 - 17
   - Rule 18 and 19
-    - Very generally, why must the labels be in the same function?
+    - Very generally, why must the labels be in the¯ same function?
     - What happens in 19?
   - Rule 20 
     - Intuitively what does this rule evaluate/define in the semantics?

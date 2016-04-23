@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2016-04-22 Fri 17:29 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="viewport" content="width=device-width, initial-scale=1" />
+<title>MiniJava Type System, Vapor Semantics</title>
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="John Bender" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<link href="./assets/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="./assets/style.css" />
+<script src="./assets/jquery-1.7.1.js"></script>
+<script src="./assets/site.js"></script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">MiniJava Type System, Vapor Semantics</h1>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1"><span class="section-number-2">1</span> MiniJava Type system</h2>
+<div class="outline-text-2" id="text-1">
+<ul class="org-ul">
+<li>Goal
+<ul class="org-ul">
+<li>Why do the class names need to be distinct? 
+<ul class="org-ul">
+<li>Could we just use the last one?</li>
+<li>Why would that be bad?</li>
+</ul></li>
+<li>What might we ignore here to simplify our type checker a lot?</li>
+</ul></li>
+
+<li>Main Class
+<ul class="org-ul">
+<li>(Piazza) What is bottom? How is it used in the rules?
+<ul class="org-ul">
+<li>In other words, what is the impact of checking the method body <code>C = ⊥</code>?
+<ul class="org-ul">
+<li>rule 44</li>
+</ul></li>
+</ul></li>
+</ul></li>
+
+<li>Type Declarations
+<ul class="org-ul">
+<li>What is <code>C</code> in the rules? How is it used?</li>
+
+<li><p>
+(Piazza) What should we do without forward declarations?
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">B</span> <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span>
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">...</span>
+<span style="color: #268bd2;">}</span>
+
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span>
+  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">...</span>
+<span style="color: #268bd2;">}</span>
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>Do we need to check that <code>B</code> "properly" extends <code>A</code> at this level?</li>
+<li>What does it mean to "properly" extend <code>A</code>?</li>
+</ul></li>
+
+<li>What's the difference between rule 23 and 24?
+<ul class="org-ul">
+<li>Can you delay overload checking?
+<ul class="org-ul">
+<li>Why is that hard/different?</li>
+</ul></li>
+</ul></li>
+
+<li><p>
+(Piazza) How does overload checking traverse the inheritance tree?
+</p>
+<ul class="org-ul">
+<li>Rule 24</li>
+</ul>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">int</span><span style="color: #8700af;">[]</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+      ...
+    <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
+
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">B</span> <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span>
+  ...
+<span style="color: #268bd2;">}</span>
+
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">C</span> <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">B</span> <span style="color: #268bd2;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">()</span> <span style="color: #8700af;">{</span>
+      ...
+    <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>Intuitively why shouldn't this typecheck?</li>
+<li>How does the type system exclude these class definitions?
+<ul class="org-ul">
+<li>Rules 20, 19, 16</li>
+</ul></li>
+</ul></li>
+</ul></li>
+
+<li>Method Declarations
+<ul class="org-ul">
+<li>Why are the fields and method identifiers treated as lists/vectors and not
+sets in rule 25?</li>
+<li>What does the <code>distinct</code> predicate prevent here?</li>
+<li>What is the consequence of appending the parameters and locals to the
+<b>front</b> of <code>fields(C)</code>?</li>
+</ul></li>
+
+<li>Statements
+<ul class="org-ul">
+<li>What is the difference between a statement and expression?
+<ul class="org-ul">
+<li>Why do we do this at all?</li>
+<li>How can you define a sequence of "statements" as an expression?</li>
+</ul></li>
+
+<li>Rule 26 
+<ul class="org-ul">
+<li><p>
+What are the brackets here for? Where is the type error in the follow
+code?
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">Foo</span> <span style="color: #268bd2;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">main</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">String</span> <span style="color: #af5fd7;">args</span><span style="color: #2aa198;">[]</span><span style="color: #8700af;">){</span>
+        <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">x</span> = <span style="color: #8700af;">1</span>;
+
+        <span style="color: #2aa198;">{</span>
+            <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">y</span> = <span style="color: #8700af;">1</span>;
+            System.out.println<span style="color: #5faf00;">(</span>x<span style="color: #5faf00;">)</span>;
+            System.out.println<span style="color: #5faf00;">(</span>y<span style="color: #5faf00;">)</span>;
+        <span style="color: #2aa198;">}</span>
+
+        System.out.println<span style="color: #2aa198;">(</span>x<span style="color: #2aa198;">)</span>;
+        System.out.println<span style="color: #2aa198;">(</span>y<span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
+</pre>
+</div></li>
+
+<li>Does this matter in minijava?</li>
+<li><p>
+How would you support it?
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-rule">A,C |- si  i ∈ 1...q
+--------------------
+A,C |- { s1 ... sq }
+
+A ᐧ [id1 : t1, ..., idr : tr] ,C |- si  i ∈ 1...q
+--------------------------------------------------
+A,C |- { t1 id1; ... tr idr; s1 ... sq }
+</pre>
+</div></li>
+</ul></li>
+
+<li>Rule 29
+<ul class="org-ul">
+<li>How would this rule be different <code>if e1 then e2 else e3</code> were an
+expression?</li>
+<li>What does this mean for expressions v statements?</li>
+</ul></li>
+</ul></li>
+
+<li>Expressions
+<ul class="org-ul">
+<li>Rule 39</li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-2">
+<h2 id="orgheadline2"><span class="section-number-2">2</span> Vapor Semantics</h2>
+<div class="outline-text-2" id="text-2">
+<ul class="org-ul">
+<li>Ignoring for now MiniJava -&gt; Vapor</li>
+<li>Draw legend for state symbols</li>
+<li>High Level Questions
+<ul class="org-ul">
+<li>Is the semantics hard to read or understand? Why?</li>
+<li>If you were to write a semantics for Java/C would it be more/less/similarly
+complex?</li>
+<li>How does the complexity of the semantics relate to the complexity of
+programming in/reading Vapor?
+<ul class="org-ul">
+<li><p>
+Factorial in Java:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">Factorial</span><span style="color: #268bd2;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #268bd2; font-weight: bold;">static</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">main</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">String</span><span style="color: #2aa198;">[]</span> <span style="color: #af5fd7;">a</span><span style="color: #8700af;">){</span>
+        System.out.println<span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">Fac</span><span style="color: #5faf00;">()</span>.ComputeFac<span style="color: #5faf00;">(</span><span style="color: #8700af;">10</span><span style="color: #5faf00;">)</span><span style="color: #2aa198;">)</span>;
+    <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
+
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">Fac</span> <span style="color: #268bd2;">{</span>
+    <span style="color: #268bd2; font-weight: bold;">public</span> <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #8700af; font-weight: bold;">ComputeFac</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">num</span><span style="color: #8700af;">){</span>
+        <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">num_aux</span> ;
+        <span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #2aa198;">(</span>num &lt; <span style="color: #8700af;">1</span><span style="color: #2aa198;">)</span>
+            num_aux = <span style="color: #8700af;">1</span> ;
+        <span style="color: #268bd2; font-weight: bold;">else</span>
+            num_aux = num * <span style="color: #2aa198;">(</span><span style="color: #268bd2; font-weight: bold;">this</span>.ComputeFac<span style="color: #5faf00;">(</span>num-<span style="color: #8700af;">1</span><span style="color: #5faf00;">)</span><span style="color: #2aa198;">)</span> ;
+        <span style="color: #268bd2; font-weight: bold;">return</span> num_aux ;
+    <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
+</pre>
+</div></li>
+
+<li><p>
+A hacked together Vapor version (not tested):
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-vapor">const vmt_Fac
+  :Fac.ComputeFac
+
+func Main()
+  t.0 = call :Fac.ComputeFac(10)
+  PrintIntS(t.0)
+  ret
+
+func Fac.ComputeFac(num)
+  t.0 = LtS(num 1)
+  if0 t.0 goto :if1_else
+    num_aux = 1
+    goto :if1_end
+  if1_else:
+    t.0 = Sub(num 1)
+    t.1 = call :Fac.ComputeFac(t.0)
+    num_aux = MulS(num t.1)
+  if1_end:
+  ret num_aux
+</pre>
+</div></li>
+</ul></li>
+<li>What accounts for the seeming complexity of the formal semantics relative to
+our intuition of the program?
+<ul class="org-ul">
+<li>Is it just tedious notation?</li>
+</ul></li>
+</ul></li>
+<li>Initial Program State
+<ul class="org-ul">
+<li>What is in <code>G</code>? Why will we need it?</li>
+<li>What is the initial state of <code>S</code>?</li>
+<li>Where does <code>b1</code> come from?</li>
+<li>Why is it that <code>b = b1</code>?</li>
+</ul></li>
+<li>Rules
+<ul class="org-ul">
+<li>What does this mean: <code>(G, H, R, E, S, b b') -&gt; (G', H', R′, E′, S', b′)</code>? 
+<ul class="org-ul">
+<li>Side conditions vs Hypothesis?</li>
+</ul></li>
+<li>Rule 1
+<ul class="org-ul">
+<li><code>o</code> can be a label, an integer, or and identifier how does <code>(R, E)*(o)</code>
+      handle each case? (See More Helper functions)</li>
+<li>Will <code>update</code> replace a previous value of <code>id</code> in <code>R ᐧE</code> ?</li>
+</ul></li>
+<li>Rule 2 
+<ul class="org-ul">
+<li>Similar to Rule 1</li>
+</ul></li>
+<li>Rule 3
+<ul class="org-ul">
+<li>What does <code>(l, c1)</code> represent?
+<ul class="org-ul">
+<li>"Vapor has three kinds of values: labels <code>l</code>, heap addresses <code>(l, c)</code>, and
+integers <code>c</code>. We use <code>v</code> to range over values."</li>
+</ul></li>
+<li>What is the use of this special case?</li>
+<li><p>
+What will be stored in <code>id</code>?
+</p>
+
+<p>
+[ l0 -&gt; &lt; &#x2026; &gt;, &#x2026;, ln -&gt; &lt; &#x2026; &gt;
+</p></li>
+</ul></li>
+<li>Rule 4
+<ul class="org-ul">
+<li>Note that the formal semantics doesn't support all pointer arithmetic</li>
+</ul></li>
+<li>Rules 5 - 7</li>
+<li>Rules 8 and 9
+<ul class="org-ul">
+<li>Value outcome is integral</li>
+</ul></li>
+<li>Rule 10
+<ul class="org-ul">
+<li>Is an offset always necessary to do a load from the heap?
+<ul class="org-ul">
+<li><a href="http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-examples/Factorial.vapor">http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-examples/Factorial.vapor</a></li>
+</ul></li>
+<li>What would the global label offset be pointing to?</li>
+<li>What happens in the semantics if <code>c'+n &gt; n</code>?</li>
+</ul></li>
+<li>Rule 11 - 13
+<ul class="org-ul">
+<li>What is S'?</li>
+</ul></li>
+<li>Rule 14 
+<ul class="org-ul">
+<li>This is heap mutation, but where is the heap mutated?</li>
+</ul></li>
+<li>Rule 15 - 17</li>
+<li>Rule 18 and 19
+<ul class="org-ul">
+<li>Very generally, why must the labels be in the¯ same function?</li>
+<li>What happens in 19?</li>
+</ul></li>
+<li>Rule 20 
+<ul class="org-ul">
+<li>Intuitively what does this rule evaluate/define in the semantics?</li>
+</ul></li>
+<li>Rule 21
+<ul class="org-ul">
+<li>Why is the different from Rule 20?</li>
+</ul></li>
+</ul></li>
+<li>Why do we need the multistep rule?</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: John Bender</p>
+<p class="date">Created: 2016-04-22 Fri 17:29</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
