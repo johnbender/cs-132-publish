@@ -7,35 +7,53 @@
 
 * Fn ~> Vapor
 - operational
-  - app
-    #+begin_src rule
-    ------------------------- 1
-    fn(t x){ e }(v) -> [v/e]e
-
-        e1 -> e1'
-    ----------------- 2
-    e1(e2) -> e1'(e2)
-
-       e2 -> e2'
-    --------------- 3
-    v(e2) -> v(e2')
-    #+end_src
-
     - call-by-value (what you're used to)
-    - call-by-name omits rule 3 and substitutes the whole expression
+
+      #+begin_src rule
+      ------------------------- 1
+      fn(t x){ e }(v) -> [v/e]e
+
+          e1 -> e1'
+      ----------------- 2
+      e1(e2) -> e1'(e2)
+
+         e2 -> e2'
+      --------------- 3
+      v(e2) -> v(e2')
+      #+end_src
+
+    - call-by-name 
+
+      #+begin_src rule
+      --------------------------- 1
+      fn(t x){ e' }(e) -> [e/x]e'
+
+          e1 -> e1'
+      ----------------- 2
+      e1(e2) -> e1'(e2)
+      #+end_src
+
 - vapor
-  - basics
-    - what do we do about functions
-    - conventions for other codes computed values
   - type of compiler function?
-    - ~fnexpr x nat x set(code) -> code x nat x set(code)~
+    - ~[e, i, fns] : fnexpr x nat x set(code) -> code x nat x set(code)~
+    - ~[x, 5, ∅] -> (x, 6, ∅)~
+    - ~<interpolation>~
+  - identifiers
+    - conventions
+      1. ~[e, i, fns]~ means the return value for ~e~'s ~<code>~ will be at ~r<i>~
+      2. ~(code, i', fns)~ means the return value for ~<code>~ will be at ~r<i>~
+    - Jens uses the first
+
+  - going to use #2
+
   - nat
+
     #+begin_src rule
-    --------------------------------
-    [n, i, fns] -> (ri = n, i+1, fns)
+    -----------------------------------
+    [n, i, fns] -> (r<i> = n, i+1, fns)
     #+end_src
 
-    - Cleverness?
+    - Example cleverness?
 
       #+begin_src vapor
       func Main()
@@ -53,17 +71,17 @@
 
   - var 
     #+begin_src rule
-    --------------------------
-    [x, i, fns] -> (x, i, fns)
+    -----------------------------------
+    [x, i, fns] -> (r<i> = x, i+1, fns)
     #+end_src
 
   - abs
 
     #+begin_src rule
     [e, i+1] -> (code, i', fns)   
-    fns' = fns ∪ {func i(x) code ret ri'}
-    ---------------------------------------------
-    [fn(t x) { e }, i, fns] -> (ri = :i, i', fns)
+    fns' = fns ∪ {func <i>(x) <code> ret r<i+1>}
+    --------------------------------------------------------
+    [fn(t x) { e }, i, fns] -> (r<i> = :<i>, i', fns)
     #+end_src
 
   - app
@@ -71,26 +89,42 @@
     #+begin_src rule
     [e1, i+1, fns] -> (code1, i', fns')  
     [e2, i'+1, fns'] -> (code2, i'', fns'')
-    -----------------------------------------------------
-    [e1(e2), i, fns] -> (code1
-                         code2
-                         ri = call ri'(ri''), i'', fns'')
+    ---------------------------------------------------------------
+    [e1(e2), i, fns] -> (<code1>
+                         <code2>
+                         r<i> = call r<i+1>(r<i'+1>), i'', fns'')
     #+end_src
-                        
+
+    - why is ~<code1>~ before ~<code2>~?
+    - how would be do pass by name semantics?
+      - maintain a mapping of names to expressions and compile at ref
+  
+        #+begin_src rule
+        [args(x), i+1, fns, args] -> (code, i', fns)
+        --------------------------------------------
+        [x, i, fns, args] -> (code
+                              r<i> = r<i+1>, i+1, fns)
+        #+end_src
+        
   - main
 
     #+begin_src rule
-    [e, 0, ∅] -> (code, i', fns)
+    [e, 0, ∅] -> (<code>, i', fns)
     -----------------------------------------------------
     [e, 0, ∅] -> (func Main()
-                    code
+                    <code>
                     ret
 
-                  fns, i', fns)
+                  <fns>, 42, fns)
     #+end_src
 
+    - implicit side condition of other rules?
     
 * Java ~> Vapor
+- class definition
+  - method dispatch
+  - fields
+  - inheritance?
 - method call
   - compilation
   - example code
