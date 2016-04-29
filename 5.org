@@ -5,33 +5,53 @@
 #+TITLE:Vapor Semantics, Compilation for Fn and Java
 #+OPTIONS: toc:nil
 
+* Conventions
+- stay consistent and you'll be OK!
+- going to back to change them may be nightmarish 
 * Fn ~> Vapor
 - operational
-    - call-by-value (what you're used to)
+  - call-by-value (what you're used to)
 
-      #+begin_src rule
-      ------------------------- 1
-      fn(t x){ e }(v) -> [v/e]e
+    #+begin_src rule
+    ------------------------- 1
+    fn(t x){ e }(v) -> [v/e]e
 
-          e1 -> e1'
-      ----------------- 2
-      e1(e2) -> e1'(e2)
+        e1 -> e1'
+    ----------------- 2
+    e1(e2) -> e1'(e2)
 
-         e2 -> e2'
-      --------------- 3
-      v(e2) -> v(e2')
-      #+end_src
+       e2 -> e2'
+    --------------- 3
+    v(e2) -> v(e2')
+    #+end_src
 
-    - call-by-name 
+  - call-by-name 
 
-      #+begin_src rule
-      --------------------------- 1
-      fn(t x){ e' }(e) -> [e/x]e'
+    #+begin_src rule
+    --------------------------- 1
+    fn(t x){ e' }(e) -> [e/x]e'
 
-          e1 -> e1'
-      ----------------- 2
-      e1(e2) -> e1'(e2)
-      #+end_src
+        e1 -> e1'
+    ----------------- 2
+    e1(e2) -> e1'(e2)
+    #+end_src
+
+  - alt-call-by-value
+
+    #+begin_src rule
+    ------------------------- 1
+    fn(t x){ e }(v) -> [v/e]e
+
+        e1 -> e1'
+    ----------------- 2
+    e1(v) -> e1'(v)
+
+       e2 -> e2'
+    --------------- 3
+    e1(e2) -> e1(e2')
+    #+end_src
+
+    - Where would this matter when compiling Fn to Vapor?
 
 - vapor
   - type of compiler function?
@@ -42,9 +62,7 @@
     - conventions
       1. ~[e, i, fns]~ means the return value for ~e~'s ~<code>~ will be at ~r<i>~
       2. ~(code, i', fns)~ means the return value for ~<code>~ will be at ~r<i>~
-    - Jens uses the first
-
-  - going to use #2
+    - Jens uses the first, so will we
 
   - nat
 
@@ -122,29 +140,161 @@
     - implicit side condition of other rules?
     
 * Java ~> Vapor
-- conventions, conventions, conventions
+- virtual method tables
+
+  #+begin_src java
+  class A { void m(){ ... } }
+
+  class B extends A { void m(){ ... } }
+  
+  class P { 
+    void main(A a){ 
+      // which implementation of m?
+      return a.m(); 
+    } 
+  }
+  #+end_src
+
+  #+begin_src vapor
+  const vmt_A
+    :A.m
+
+  const vmt_B
+    ??
+  #+end_src
+  - Two conventions
+    1. vmt label names
+    2. method names/labels
+
+  #+begin_src java
+  class A { 
+    void m(){ ... } 
+    void l(){ ... }
+  }
+
+  class B extends A { void m(){ ... } }
+  #+end_src
+
+  #+begin_src vapor
+  const vmt_A
+    :A.m
+    :A.l
+
+  const vmt_B
+    ??
+  #+end_src
+
+  - Third convention, method definition occurs in defined order
+
+  - Lookup may be slow, when/how can we optimize?
+- member variables/fields
+  - instance allocation
+  - enough memory for vmt ref and fields, ~(1 + |fields|) * 4~ 
+  - eg
+    - intantiate class ~Foo~ with 3 fields
+    - call the second method (no params)
+    - write the result into the second field
+    - read the third field
+    #+begin_src vapor
+    // instantiate:
+    r1 = HeapAllocZ(16)
+    [r1] = vmt_Foo
+
+    // method call:
+    // deref instance
+    r2 = [r1]
+    // deref vmt + offset
+    r3 = [r2 + 0]
+    r4 = call r2()
+    
+    // field write
+    [r1 + 8] = r3
+
+    // field read
+    r5 = [r1 + 12]
+    #+end_src
+    
 - ~class id { t1 id1 ... tn idn }~
   - fields
     - keep track use "byte offset"
     - anything else?
   - methods
-    - const "table" lookup
     - for each method create a label in the const table
     - table label at first entry
-      - ~new X(); -> HeepAllocZ(<xsize>); [ri + 0] = :vmt_X~ 
+      - ~new X(); -> HeapAllocZ(<xsize>); [ri + 0] = :vmt_X~ 
+
+  - rule
+    #+begin_src rule
+    vmts' = vmts ∪ { const vmt_<id> :m1 ... :mp }
+    layouts' = layouts ∪ { (id1, ... idn ) }
+    c[rest, layouts', vmts'] -> (layouts'', vmts'')
+    ---------------------------------------------------------------
+    c[class id { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
+      -> (layouts'', vmts'')
+    #+end_src
+      
+
 - ~class id1 extends id2 { ... }~
   - inheritance?
   - layout restriction? 
   - why?
+    
+  - rules
+    #+begin_src rule
+    layouts(id2) =/= bot 
+    layouts' = layouts ∪ { combine(layouts(id2), id1, ... idn ) }
+    vmts' = vmts ∪ { const vmt_<id> :<id>.<m1> ... :<id>.<mp> }
+
+    c[rest, layouts', vmts'] -> (layouts'', vmts'')
+    ---------------------------------------------------------------
+    c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
+      -> (layouts'', vmts'')
+    #+end_src
+
+    #+begin_src rule
+    vmts' = vmts ∪ { const vmt_<id> :<id>.<m1> ... :<id>.<mp> }
+
+    c[rest, layouts, vmts'] -> (layouts', vmts'')
+    layouts'' = layouts' ∪ { combine(layouts(id2), id1, ... idn ) }
+    ----------------------------------------------------------------------------
+    c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
+      -> (layouts'', vmts'')
+    #+end_src
+
+    - missing layout details?
+      - sorting 
+      - ~combine~
+        #+begin_src rule
+        combine(pids, cid :: crest) = 
+          if cid in pids then combi 
+        #+end_src
+
+    
+- ~class id { void main ... }~
+
+  #+begin_rule src 
+  c[m c1 ... cq, ∅, ∅] -> (layouts, vmts)   
+  m[m c1 ... cq, layouts, vmts] -> (ms)
+  ---------------------------------------------------------------------
+  [m c1 ... cq ] -> <vmts>
+                    <ms(Main)>
+                    <ms>
+  #+end_rule
+
+- ~e.id(...)~
+  - method dispatch
+  - compilation
+  - example code
+
+- ~e.id~
+  - lookup
+  - method dispatch
+  - compilation
+  - example code
 
 - ~t id( t1 id1 ... tn idn ){ ... }~
   - this
 
-- ~e.id(...)~
-  - this
-  - method dispatch
-  - compilation
-  - example code
 - ~new~
   - init for constructor
   - compilation
