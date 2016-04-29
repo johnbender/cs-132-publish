@@ -70,6 +70,7 @@
       #+end_src
 
   - var 
+
     #+begin_src rule
     -----------------------------------
     [x, i, fns] -> (r<i> = x, i+1, fns)
@@ -121,14 +122,32 @@
     - implicit side condition of other rules?
     
 * Java ~> Vapor
-- class definition
-  - method dispatch
+- conventions, conventions, conventions
+- ~class id { t1 id1 ... tn idn }~
   - fields
+    - keep track use "byte offset"
+    - anything else?
+  - methods
+    - const "table" lookup
+    - for each method create a label in the const table
+    - table label at first entry
+      - ~new X(); -> HeepAllocZ(<xsize>); [ri + 0] = :vmt_X~ 
+- ~class id1 extends id2 { ... }~
   - inheritance?
-- method call
+  - layout restriction? 
+  - why?
+
+- ~t id( t1 id1 ... tn idn ){ ... }~
+  - this
+
+- ~e.id(...)~
+  - this
+  - method dispatch
   - compilation
   - example code
-- new
+- ~new~
+  - init for constructor
   - compilation
   - 
-- 
+- ~if~
+- ~while~
