@@ -1,0 +1,100 @@
+#+HTML_HEAD: <link href="./assets/bootstrap.min.css" rel="stylesheet">
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+#+HTML_HEAD: <script src="./assets/jquery-1.7.1.js"></script>
+#+HTML_HEAD: <script src="./assets/site.js"></script>
+#+TITLE:Vapor Semantics, Compilation for Fn and Java
+#+OPTIONS: toc:nil
+
+* Fn ~> Vapor
+- operational
+  - app
+    #+begin_src rule
+    ------------------------- 1
+    fn(t x){ e }(v) -> [v/e]e
+
+        e1 -> e1'
+    ----------------- 2
+    e1(e2) -> e1'(e2)
+
+       e2 -> e2'
+    --------------- 3
+    v(e2) -> v(e2')
+    #+end_src
+
+    - call-by-value (what you're used to)
+    - call-by-name omits rule 3 and substitutes the whole expression
+- vapor
+  - basics
+    - what do we do about functions
+    - conventions for other codes computed values
+  - type of compiler function?
+    - ~fnexpr x nat x set(code) -> code x nat x set(code)~
+  - nat
+    #+begin_src rule
+    --------------------------------
+    [n, i, fns] -> (ri = n, i+1, fns)
+    #+end_src
+
+    - Cleverness?
+
+      #+begin_src vapor
+      func Main()
+        t.0 = HeapAllocZ(4)
+        [t.0] = :vmt_Fac
+        if t.0 goto :null1
+          Error("null pointer")
+        null1:
+        t.1 = [t.0]
+        t.1 = [t.1+0]
+        t.2 = call t.1(t.0 10) <---- nat
+        PrintIntS(t.2)
+        ret
+      #+end_src
+
+  - var 
+    #+begin_src rule
+    --------------------------
+    [x, i, fns] -> (x, i, fns)
+    #+end_src
+
+  - abs
+
+    #+begin_src rule
+    [e, i+1] -> (code, i', fns)   
+    fns' = fns ∪ {func i(x) code ret ri'}
+    ---------------------------------------------
+    [fn(t x) { e }, i, fns] -> (ri = :i, i', fns)
+    #+end_src
+
+  - app
+
+    #+begin_src rule
+    [e1, i+1, fns] -> (code1, i', fns')  
+    [e2, i'+1, fns'] -> (code2, i'', fns'')
+    -----------------------------------------------------
+    [e1(e2), i, fns] -> (code1
+                         code2
+                         ri = call ri'(ri''), i'', fns'')
+    #+end_src
+                        
+  - main
+
+    #+begin_src rule
+    [e, 0, ∅] -> (code, i', fns)
+    -----------------------------------------------------
+    [e, 0, ∅] -> (func Main()
+                    code
+                    ret
+
+                  fns, i', fns)
+    #+end_src
+
+    
+* Java ~> Vapor
+- method call
+  - compilation
+  - example code
+- new
+  - compilation
+  - 
+- 
