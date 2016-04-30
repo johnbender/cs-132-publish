@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-04-29 Fri 13:46 -->
+<!-- 2016-04-29 Fri 22:14 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="viewport" content="width=device-width, initial-scale=1" />
 <title>Vapor Semantics, Compilation for Fn and Java</title>
@@ -170,7 +170,7 @@ call-by-value (what you're used to)
 <div class="org-src-container">
 
 <pre class="src src-rule">------------------------- 1
-fn(t x){ e }(v) -&gt; [v/e]e
+fn(t x){ e }(v) -&gt; [v/x]e
 
     e1 -&gt; e1'
 ----------------- 2
@@ -595,7 +595,7 @@ m[m c1 &#x2026; cq, layouts, vmts] -&gt; (ms)
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: John Bender</p>
-<p class="date">Created: 2016-04-29 Fri 13:46</p>
+<p class="date">Created: 2016-04-29 Fri 22:14</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
