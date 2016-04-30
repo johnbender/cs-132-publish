@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2016-04-29 Fri 13:46 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vapor Semantics, Compilation for Fn and Java</title>
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="John Bender" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<link href="./assets/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="./assets/style.css" />
+<script src="./assets/jquery-1.7.1.js"></script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Vapor Semantics, Compilation for Fn and Java</h1>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1"><span class="section-number-2">1</span> Conventions</h2>
+<div class="outline-text-2" id="text-1">
+<ul class="org-ul">
+<li>stay consistent and you'll be OK!</li>
+<li>going to back to change them may be nightmarish</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgheadline2" class="outline-2">
+<h2 id="orgheadline2"><span class="section-number-2">2</span> Fn ~&gt; Vapor</h2>
+<div class="outline-text-2" id="text-2">
+<ul class="org-ul">
+<li>operational
+<ul class="org-ul">
+<li><p>
+call-by-value (what you're used to)
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-rule">------------------------- 1
+fn(t x){ e }(v) -&gt; [v/e]e
+
+    e1 -&gt; e1'
+----------------- 2
+e1(e2) -&gt; e1'(e2)
+
+   e2 -&gt; e2'
+--------------- 3
+v(e2) -&gt; v(e2')
+</pre>
+</div></li>
+
+<li><p>
+call-by-name 
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-rule">--------------------------- 1
+fn(t x){ e' }(e) -&gt; [e/x]e'
+
+    e1 -&gt; e1'
+----------------- 2
+e1(e2) -&gt; e1'(e2)
+</pre>
+</div></li>
+
+<li><p>
+alt-call-by-value
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-rule">------------------------- 1
+fn(t x){ e }(v) -&gt; [v/e]e
+
+    e1 -&gt; e1'
+----------------- 2
+e1(v) -&gt; e1'(v)
+
+   e2 -&gt; e2'
+--------------- 3
+e1(e2) -&gt; e1(e2')
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>Where would this matter when compiling Fn to Vapor?</li>
+</ul></li>
+</ul></li>
+
+<li>vapor
+<ul class="org-ul">
+<li>type of compiler function?
+<ul class="org-ul">
+<li><code>[e, i, fns] : fnexpr x nat x set(code) -&gt; code x nat x set(code)</code></li>
+<li><code>[x, 5, ∅] -&gt; (x, 6, ∅)</code></li>
+<li><code>&lt;interpolation&gt;</code></li>
+</ul></li>
+<li>identifiers
+<ul class="org-ul">
+<li>conventions
+<ol class="org-ol">
+<li><code>[e, i, fns]</code> means the return value for <code>e</code>'s <code>&lt;code&gt;</code> will be at <code>r&lt;i&gt;</code></li>
+<li><code>(code, i', fns)</code> means the return value for <code>&lt;code&gt;</code> will be at <code>r&lt;i&gt;</code></li>
+</ol></li>
+<li>Jens uses the first, so will we</li>
+</ul></li>
+
+<li><p>
+nat
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-rule">-----------------------------------
+[n, i, fns] -&gt; (r&lt;i&gt; = n, i+1, fns)
+</pre>
+</div>
+
+<ul class="org-ul">
+<li><p>
+Example cleverness?
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-vapor">func Main()
+  t.0 = HeapAllocZ(4)
+  [t.0] = :vmt_Fac
+  if t.0 goto :null1
+    Error("null pointer")
+  null1:
+  t.1 = [t.0]
+  t.1 = [t.1+0]
+  t.2 = call t.1(t.0 10) &lt;---- nat
+  PrintIntS(t.2)
+  ret
+</pre>
+</div></li>
+</ul></li>
+
+<li><p>
+var 
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-rule">-----------------------------------
+[x, i, fns] -&gt; (r&lt;i&gt; = x, i+1, fns)
+</pre>
+</div></li>
+
+<li><p>
+abs
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-rule">[e, i+1] -&gt; (code, i', fns)   
+fns' = fns ∪ {func &lt;i&gt;(x) &lt;code&gt; ret r&lt;i+1&gt;}
+--------------------------------------------------------
+[fn(t x) { e }, i, fns] -&gt; (r&lt;i&gt; = :&lt;i&gt;, i', fns)
+</pre>
+</div></li>
+
+<li><p>
+app
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-rule">[e1, i+1, fns] -&gt; (code1, i', fns')  
+[e2, i'+1, fns'] -&gt; (code2, i'', fns'')
+---------------------------------------------------------------
+[e1(e2), i, fns] -&gt; (&lt;code1&gt;
+                     &lt;code2&gt;
+                     r&lt;i&gt; = call r&lt;i+1&gt;(r&lt;i'+1&gt;), i'', fns'')
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>why is <code>&lt;code1&gt;</code> before <code>&lt;code2&gt;</code>?</li>
+<li>how would be do pass by name semantics?
+<ul class="org-ul">
+<li><p>
+maintain a mapping of names to expressions and compile at ref
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-rule">[args(x), i+1, fns, args] -&gt; (code, i', fns)
+--------------------------------------------
+[x, i, fns, args] -&gt; (code
+                      r&lt;i&gt; = r&lt;i+1&gt;, i+1, fns)
+</pre>
+</div></li>
+</ul></li>
+</ul></li>
+
+<li><p>
+main
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-rule">[e, 0, ∅] -&gt; (&lt;code&gt;, i', fns)
+-----------------------------------------------------
+[e, 0, ∅] -&gt; (func Main()
+                &lt;code&gt;
+                ret
+
+              &lt;fns&gt;, 42, fns)
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>implicit side condition of other rules?</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-2">
+<h2 id="orgheadline3"><span class="section-number-2">3</span> Java ~&gt; Vapor</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li><p>
+virtual method tables
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> <span style="color: #268bd2;">}</span>
+
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">B</span> <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> <span style="color: #268bd2;">}</span>
+
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">P</span> <span style="color: #268bd2;">{</span> 
+  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">main</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #af5fd7;">a</span><span style="color: #8700af;">){</span> 
+    <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">which implementation of m?</span>
+    <span style="color: #268bd2; font-weight: bold;">return</span> a.m<span style="color: #2aa198;">()</span>; 
+  <span style="color: #8700af;">}</span> 
+<span style="color: #268bd2;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-vapor">const vmt_A
+  :A.m
+
+const vmt_B
+  ??
+</pre>
+</div>
+<ul class="org-ul">
+<li>Two conventions
+<ol class="org-ol">
+<li>vmt label names</li>
+<li>method names/labels</li>
+</ol></li>
+</ul>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> 
+  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> 
+  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">l</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
+
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">B</span> <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> <span style="color: #268bd2;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-vapor">const vmt_A
+  :A.m
+  :A.l
+
+const vmt_B
+  ??
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>Third convention, method definition occurs in defined order</li>
+
+<li>Lookup may be slow, when/how can we optimize?</li>
+</ul></li>
+<li>member variables/fields
+<ul class="org-ul">
+<li>instance allocation</li>
+<li>enough memory for vmt ref and fields, <code>(1 + |fields|) * 4</code></li>
+<li><p>
+eg
+</p>
+<ul class="org-ul">
+<li>intantiate class <code>Foo</code> with 3 fields</li>
+<li>call the second method (no params)</li>
+<li>write the result into the second field</li>
+<li>read the third field</li>
+</ul>
+<div class="org-src-container">
+
+<pre class="src src-vapor">// instantiate:
+r1 = HeapAllocZ(16)
+[r1] = vmt_Foo
+
+// method call:
+// deref instance
+r2 = [r1]
+// deref vmt + offset
+r3 = [r2 + 0]
+r4 = call r2()
+
+// field write
+[r1 + 8] = r3
+
+// field read
+r5 = [r1 + 12]
+</pre>
+</div></li>
+</ul></li>
+
+<li><code>class id { t1 id1 ... tn idn }</code>
+<ul class="org-ul">
+<li>fields
+<ul class="org-ul">
+<li>keep track use "byte offset"</li>
+<li>anything else?</li>
+</ul></li>
+<li>methods
+<ul class="org-ul">
+<li>for each method create a label in the const table</li>
+<li>table label at first entry
+<ul class="org-ul">
+<li><code>new X(); -&gt; HeapAllocZ(&lt;xsize&gt;); [ri + 0] = :vmt_X</code></li>
+</ul></li>
+</ul></li>
+
+<li><p>
+rule
+</p>
+<div class="org-src-container">
+
+<pre class="src src-rule">vmts' = vmts ∪ { const vmt_&lt;id&gt; :m1 ... :mp }
+layouts' = layouts ∪ { (id1, ... idn ) }
+c[rest, layouts', vmts'] -&gt; (layouts'', vmts'')
+---------------------------------------------------------------
+c[class id { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
+  -&gt; (layouts'', vmts'')
+</pre>
+</div></li>
+</ul></li>
+</ul>
+
+
+<ul class="org-ul">
+<li><code>class id1 extends id2 { ... }</code>
+<ul class="org-ul">
+<li>inheritance?</li>
+<li>layout restriction?</li>
+<li>why?</li>
+
+<li><p>
+rules
+</p>
+<div class="org-src-container">
+
+<pre class="src src-rule">layouts(id2) =/= bot 
+layouts' = layouts ∪ { combine(layouts(id2), id1, ... idn ) }
+vmts' = vmts ∪ { const vmt_&lt;id&gt; :&lt;id&gt;.&lt;m1&gt; ... :&lt;id&gt;.&lt;mp&gt; }
+
+c[rest, layouts', vmts'] -&gt; (layouts'', vmts'')
+---------------------------------------------------------------
+c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
+  -&gt; (layouts'', vmts'')
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-rule">vmts' = vmts ∪ { const vmt_&lt;id&gt; :&lt;id&gt;.&lt;m1&gt; ... :&lt;id&gt;.&lt;mp&gt; }
+
+c[rest, layouts, vmts'] -&gt; (layouts', vmts'')
+layouts'' = layouts' ∪ { combine(layouts(id2), id1, ... idn ) }
+----------------------------------------------------------------------------
+c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
+  -&gt; (layouts'', vmts'')
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>missing layout details?
+<ul class="org-ul">
+<li>sorting</li>
+<li><p>
+<code>combine</code>
+</p>
+<div class="org-src-container">
+
+<pre class="src src-rule">combine(pids, cid :: crest) = 
+  if cid in pids then combi
+</pre>
+</div></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+
+
+<ul class="org-ul">
+<li><p>
+<code>class id { void main ... }</code>
+</p>
+
+<div class="rule">
+<p>
+c[m c1 &#x2026; cq, ∅, ∅] -&gt; (layouts, vmts)   
+m[m c1 &#x2026; cq, layouts, vmts] -&gt; (ms)
+</p>
+<hr  />
+<p>
+[m c1 &#x2026; cq ] -&gt; &lt;vmts&gt;
+                  &lt;ms(Main)&gt;
+                  &lt;ms&gt;
+</p>
+
+</div></li>
+
+<li><code>e.id(...)</code>
+<ul class="org-ul">
+<li>method dispatch</li>
+<li>compilation</li>
+<li>example code</li>
+</ul></li>
+
+<li><code>e.id</code>
+<ul class="org-ul">
+<li>lookup</li>
+<li>method dispatch</li>
+<li>compilation</li>
+<li>example code</li>
+</ul></li>
+
+<li><code>t id( t1 id1 ... tn idn ){ ... }</code>
+<ul class="org-ul">
+<li>this</li>
+</ul></li>
+
+<li><code>new</code>
+<ul class="org-ul">
+<li>init for constructor</li>
+<li>compilation</li>
+<li></li>
+</ul></li>
+<li><code>if</code></li>
+<li><code>while</code></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: John Bender</p>
+<p class="date">Created: 2016-04-29 Fri 13:46</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
