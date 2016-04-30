@@ -3,10 +3,10 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-04-29 Fri 22:14 -->
+<!-- 2016-04-29 Fri 22:18 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="viewport" content="width=device-width, initial-scale=1" />
-<title>Vapor Semantics, Compilation for Fn and Java</title>
+<title>Vapor Semantics, Compilation for Fn</title>
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="John Bender" />
 <style type="text/css">
@@ -146,7 +146,7 @@ for the JavaScript code in this tag.
 </head>
 <body>
 <div id="content">
-<h1 class="title">Vapor Semantics, Compilation for Fn and Java</h1>
+<h1 class="title">Vapor Semantics, Compilation for Fn</h1>
 
 <div id="outline-container-orgheadline1" class="outline-2">
 <h2 id="orgheadline1"><span class="section-number-2">1</span> Conventions</h2>
@@ -336,266 +336,27 @@ main
 
 <div class="org-src-container">
 
-<pre class="src src-rule">[e, 0, ∅] -&gt; (&lt;code&gt;, i', fns)
+<pre class="src src-rule">[e, 1, ∅] -&gt; (&lt;code&gt;, i', fns)
 -----------------------------------------------------
 [e, 0, ∅] -&gt; (func Main()
                 &lt;code&gt;
-                ret
+              ret
 
               &lt;fns&gt;, 42, fns)
 </pre>
 </div>
 
 <ul class="org-ul">
-<li>implicit side condition of other rules?</li>
+<li>implicit side condition of other rules is <code>i &gt; 0</code></li>
 </ul></li>
 </ul></li>
-</ul>
-</div>
-</div>
-
-<div id="outline-container-orgheadline3" class="outline-2">
-<h2 id="orgheadline3"><span class="section-number-2">3</span> Java ~&gt; Vapor</h2>
-<div class="outline-text-2" id="text-3">
-<ul class="org-ul">
-<li><p>
-virtual method tables
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> <span style="color: #268bd2;">}</span>
-
-<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">B</span> <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> <span style="color: #268bd2;">}</span>
-
-<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">P</span> <span style="color: #268bd2;">{</span> 
-  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">main</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #af5fd7;">a</span><span style="color: #8700af;">){</span> 
-    <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">which implementation of m?</span>
-    <span style="color: #268bd2; font-weight: bold;">return</span> a.m<span style="color: #2aa198;">()</span>; 
-  <span style="color: #8700af;">}</span> 
-<span style="color: #268bd2;">}</span>
-</pre>
-</div>
-
-<div class="org-src-container">
-
-<pre class="src src-vapor">const vmt_A
-  :A.m
-
-const vmt_B
-  ??
-</pre>
-</div>
-<ul class="org-ul">
-<li>Two conventions
-<ol class="org-ol">
-<li>vmt label names</li>
-<li>method names/labels</li>
-</ol></li>
-</ul>
-<div class="org-src-container">
-
-<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> 
-  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> 
-  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">l</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span>
-<span style="color: #268bd2;">}</span>
-
-<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">B</span> <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> <span style="color: #268bd2;">}</span>
-</pre>
-</div>
-
-<div class="org-src-container">
-
-<pre class="src src-vapor">const vmt_A
-  :A.m
-  :A.l
-
-const vmt_B
-  ??
-</pre>
-</div>
-
-<ul class="org-ul">
-<li>Third convention, method definition occurs in defined order</li>
-
-<li>Lookup may be slow, when/how can we optimize?</li>
-</ul></li>
-<li>member variables/fields
-<ul class="org-ul">
-<li>instance allocation</li>
-<li>enough memory for vmt ref and fields, <code>(1 + |fields|) * 4</code></li>
-<li><p>
-eg
-</p>
-<ul class="org-ul">
-<li>intantiate class <code>Foo</code> with 3 fields</li>
-<li>call the second method (no params)</li>
-<li>write the result into the second field</li>
-<li>read the third field</li>
-</ul>
-<div class="org-src-container">
-
-<pre class="src src-vapor">// instantiate:
-r1 = HeapAllocZ(16)
-[r1] = vmt_Foo
-
-// method call:
-// deref instance
-r2 = [r1]
-// deref vmt + offset
-r3 = [r2 + 0]
-r4 = call r2()
-
-// field write
-[r1 + 8] = r3
-
-// field read
-r5 = [r1 + 12]
-</pre>
-</div></li>
-</ul></li>
-
-<li><code>class id { t1 id1 ... tn idn }</code>
-<ul class="org-ul">
-<li>fields
-<ul class="org-ul">
-<li>keep track use "byte offset"</li>
-<li>anything else?</li>
-</ul></li>
-<li>methods
-<ul class="org-ul">
-<li>for each method create a label in the const table</li>
-<li>table label at first entry
-<ul class="org-ul">
-<li><code>new X(); -&gt; HeapAllocZ(&lt;xsize&gt;); [ri + 0] = :vmt_X</code></li>
-</ul></li>
-</ul></li>
-
-<li><p>
-rule
-</p>
-<div class="org-src-container">
-
-<pre class="src src-rule">vmts' = vmts ∪ { const vmt_&lt;id&gt; :m1 ... :mp }
-layouts' = layouts ∪ { (id1, ... idn ) }
-c[rest, layouts', vmts'] -&gt; (layouts'', vmts'')
----------------------------------------------------------------
-c[class id { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
-  -&gt; (layouts'', vmts'')
-</pre>
-</div></li>
-</ul></li>
-</ul>
-
-
-<ul class="org-ul">
-<li><code>class id1 extends id2 { ... }</code>
-<ul class="org-ul">
-<li>inheritance?</li>
-<li>layout restriction?</li>
-<li>why?</li>
-
-<li><p>
-rules
-</p>
-<div class="org-src-container">
-
-<pre class="src src-rule">layouts(id2) =/= bot 
-layouts' = layouts ∪ { combine(layouts(id2), id1, ... idn ) }
-vmts' = vmts ∪ { const vmt_&lt;id&gt; :&lt;id&gt;.&lt;m1&gt; ... :&lt;id&gt;.&lt;mp&gt; }
-
-c[rest, layouts', vmts'] -&gt; (layouts'', vmts'')
----------------------------------------------------------------
-c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
-  -&gt; (layouts'', vmts'')
-</pre>
-</div>
-
-<div class="org-src-container">
-
-<pre class="src src-rule">vmts' = vmts ∪ { const vmt_&lt;id&gt; :&lt;id&gt;.&lt;m1&gt; ... :&lt;id&gt;.&lt;mp&gt; }
-
-c[rest, layouts, vmts'] -&gt; (layouts', vmts'')
-layouts'' = layouts' ∪ { combine(layouts(id2), id1, ... idn ) }
-----------------------------------------------------------------------------
-c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
-  -&gt; (layouts'', vmts'')
-</pre>
-</div>
-
-<ul class="org-ul">
-<li>missing layout details?
-<ul class="org-ul">
-<li>sorting</li>
-<li><p>
-<code>combine</code>
-</p>
-<div class="org-src-container">
-
-<pre class="src src-rule">combine(pids, cid :: crest) = 
-  if cid in pids then combi
-</pre>
-</div></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
-
-
-<ul class="org-ul">
-<li><p>
-<code>class id { void main ... }</code>
-</p>
-
-<div class="rule">
-<p>
-c[m c1 &#x2026; cq, ∅, ∅] -&gt; (layouts, vmts)   
-m[m c1 &#x2026; cq, layouts, vmts] -&gt; (ms)
-</p>
-<hr  />
-<p>
-[m c1 &#x2026; cq ] -&gt; &lt;vmts&gt;
-                  &lt;ms(Main)&gt;
-                  &lt;ms&gt;
-</p>
-
-</div></li>
-
-<li><code>e.id(...)</code>
-<ul class="org-ul">
-<li>method dispatch</li>
-<li>compilation</li>
-<li>example code</li>
-</ul></li>
-
-<li><code>e.id</code>
-<ul class="org-ul">
-<li>lookup</li>
-<li>method dispatch</li>
-<li>compilation</li>
-<li>example code</li>
-</ul></li>
-
-<li><code>t id( t1 id1 ... tn idn ){ ... }</code>
-<ul class="org-ul">
-<li>this</li>
-</ul></li>
-
-<li><code>new</code>
-<ul class="org-ul">
-<li>init for constructor</li>
-<li>compilation</li>
-<li></li>
-</ul></li>
-<li><code>if</code></li>
-<li><code>while</code></li>
 </ul>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: John Bender</p>
-<p class="date">Created: 2016-04-29 Fri 22:14</p>
+<p class="date">Created: 2016-04-29 Fri 22:18</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
