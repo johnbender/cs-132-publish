@@ -1,0 +1,250 @@
+#+HTML_HEAD: <link href="./assets/bootstrap.min.css" rel="stylesheet">
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+#+HTML_HEAD: <script src="./assets/jquery-1.7.1.js"></script>
+
+#+TITLE: Compilation for Java
+#+OPTIONS: toc:nil
+
+* Java ~> Vapor
+- ~class id { void main ... }~
+  - Rule
+    #+begin_src rule
+    clss[m c1 ... cq, ∅, ∅] -> (layouts, vmts)   
+    meth[m c1 ... cq, layouts, vmts] -> (ms)
+    ---------------------------------------------------------------------
+    [m c1 ... cq ] -> <vmts>
+                      <ms(Main)>
+                      <ms>
+    #+end_src
+- ~new id()~
+  - First approximation 
+    - assume we have no inheritance 
+    - e.g.
+      #+begin_src java 
+      class A {
+        int foo;       
+        int bar;
+        int baz;
+
+        int m(){      
+          return foo;  // support field refs
+        }
+      }
+
+      class Main { 
+        void main( ... ){ 
+          A a = new A(); 
+          a.m();       // support method calls
+        }
+      }
+      #+end_src
+  - Member variables/fields
+    - ~|fields| * 4~
+    - eg
+      - intantiate class ~A~ with 3 fields
+      - call the method ~m~ 
+      - write the result into the second field
+      - read the third field
+      #+begin_src vapor
+      // instantiate:
+      r1 = HeapAllocZ(16)
+      
+      // our initial convention
+      [r1] = :A.m
+
+      ... 
+
+      // method call:
+      // deref instance
+      r2 = [r1]
+      // deref method offset (how do we know this?)
+      r3 = [r2 + 0]
+      r4 = call r3()
+
+      // field write
+      [r1 + 8] = r3
+
+      // field read
+      r5 = [r1 + 12]
+      #+end_src
+  - Virtual Method Tables
+    - Why do we need VMTs?
+    - e.g.
+      #+begin_src java
+      class A { 
+        void m(){ ... } 
+      }
+
+      class B extends A { 
+        void m(){ ... } 
+      }
+
+      class P { 
+        void n(A a){ 
+          // which implementation of m?
+          a.m(); 
+        } 
+      }
+      #+end_src
+
+      #+begin_src vapor
+      const vmt_A
+        :A.m
+
+      const vmt_B
+        ??
+      #+end_src
+    - Two conventions
+      1. table labels
+      2. method labels
+    - inherited methods
+      - e.g. 
+        #+begin_src java
+        class A { 
+          void m(){ ... } 
+          void l(){ ... }
+        }
+
+        class B extends A { void m(){ ... } }
+        #+end_src
+
+        #+begin_src vapor
+        const vmt_A
+          :A.m
+          :A.l
+
+        const vmt_B
+          ??
+        #+end_src
+    - Third convention, method definition occurs in defined order
+    - Lookup may be slow, when/how can we optimize?
+  - Final form
+    - eg
+      - assuming public access to member variables
+      - intantiate class ~A~ with 3 fields
+      - call the second method (no params)
+      - write the result into the second field
+      - read the third field
+      #+begin_src vapor
+      // instantiate: 
+      r1 = HeapAllocZ(16) // why 16?
+
+      // attach vmt label
+      [r1] = :vmt_A
+
+      ...
+
+      // method call: 
+      // deref instance 
+      r2 = [r1] 
+
+      // deref vmt + offset 
+      r3 = [r2 + 0] 
+      r4 = call r3()
+
+      // field write of m() return
+      [r1 + 8] = r4
+
+      // field read for some other purpose
+      r5 = [r1 + 12] 
+      #+end_src
+  - Rule
+    #+begin_src rule 
+    size = size(layouts(id))
+    -------------------------------
+    expr[new id(), i, layouts, vmts] ->
+       (r<i> = HeapAllocZ(<size>)
+        [r<i>] = :vmt_<id>,       i+1 )
+    #+end_src
+- ~e.id(...)~
+  - Where do we get the method from?
+  - Rule
+    #+begin_src rule 
+    expr[e, i+1, layouts, vmts] -> (code1, i1)
+    expr[e1, i1, layouts, vmts] -> (code2, i2)
+    ...
+    expr[en, in-1, layouts, vmts] -> (coden, in)
+    offset = offset(vmts(classof(e)), id)
+    -------------------------------------------
+    expr[e.id( e1, ..., en ), i, layouts, vmts] ->
+      ( <code1>
+        <code2>
+        ...
+        <coden>
+        ri_mcall = [r<i+1> + offset]
+        r<i> = call ri_mcall(r<i1> ... r<in-1>), in )
+    #+end_src
+- ~class id { t1 id1 ... tn idn }~
+  - Fields, see ~new id()~ above
+  - Methods
+    - for each method create a label in the const table
+    - table label at first entry
+  - Rule
+    #+begin_src rule
+    vmts' = vmts ∪ { const vmt_<id> :m1 ... :mp }
+    layouts' = layouts ∪ { (id1, ... idn ) }
+    clss[rest, layouts', vmts'] -> (layouts'', vmts'')
+    ---------------------------------------------------------------
+    clss[class id { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
+      -> (layouts'', vmts'')
+    #+end_src
+- ~class id1 extends id2 { ... }~
+  - We must take the parent class layout into account, here ~combine~
+  - Single pass can get the layout from the parent if it is defined before or
+    after the child class
+  - Rules
+    - If the parent class is defined before
+      #+begin_src rule
+      layouts(id2) =/= bot 
+      layouts' = layouts ∪ { combine(layouts(id2), id1, ... idn ) }
+      vmts' = vmts ∪ { const vmt_<id> :<id>.<m1> ... :<id>.<mp> }
+
+      clss[rest, layouts', vmts'] -> (layouts'', vmts'')
+      ---------------------------------------------------------------
+      clss[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp }  rest, layouts, vmts] 
+        -> (layouts'', vmts'')
+      #+end_src
+    - If the parent class is defined after
+      #+begin_src rule
+      vmts' = vmts ∪ { const vmt_<id> :<id>.<m1> ... :<id>.<mp> }
+      clss[rest, layouts, vmts'] -> (layouts', vmts'')
+      layouts'' = layouts' ∪ { combine(layouts(id2), id1, ... idn ) }
+      ----------------------------------------------------------------------------
+      clss[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp }  rest, layouts, vmts] 
+        -> (layouts'', vmts'')
+      #+end_src
+    - Missing layout details?
+      - sorting 
+      - ~combine~
+      - you must ensure that both parent class instances and child class instances
+- ~t id( t1 id1 ... tn idn ){ ... }~
+  - Class Rule
+    #+begin_src rule
+    meth[m1, i+1, layouts, vmts] -> (m1code, i1)
+    ...
+    meth[mn, in-1, layouts, vmts] -> (mncode, in)
+    --------------------------------------------------------
+    meth[class id ... { ...; m1 ... mn }, i, layouts, vmts] ->
+      ({ m1 -> m1code, ..., mn -> mncode})
+    #+end_src
+  - Rule
+    #+begin_src rule
+    stmt[s1, i+1, layouts, vmts] -> (code1, i1)
+    stmt[s1, i1, layouts, vmts] -> (code2, i2)
+    stmt[s1, in-1, layouts, vmts] -> (coden, in)
+    expr[e, in, layouts, vmts] -> (codee, ie)
+    ------------------------------------------------------------
+    meth[C, t id( t1 id1 ... tn idn ){ ... s1; .... sn; return e }, 
+      i, 
+      layouts, 
+      vmts] ->
+      ( func <C>_<id>(id1 ... idn): 
+          <code1>
+          <code1>
+          ...
+          <coden>
+          <codee>
+          ret i<in>, ie )
+    #+end_src
+- ~if~
+- ~while~

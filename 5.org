@@ -139,166 +139,192 @@
 
     - implicit side condition of other rules is ~i > 0~
     
-# * Java ~> Vapor
-# - virtual method tables
+* Java ~> Vapor
+- ~new id()~
+  - first approximation 
+    - assume we have no inheritance 
+    - e.g.
+      #+begin_src java 
+      class A {
+        int foo;       
 
-#   #+begin_src java
-#   class A { void m(){ ... } }
+        void m(){      // support method calls
+          return foo;  // support field refs
+        }
+      }
 
-#   class B extends A { void m(){ ... } }
+      class Main { 
+        void main( ... ){ 
+          A a = new A(); 
+        }
+      }
+      #+end_src
+  - member variables/fields
+    - ~|fields| * 4~
+    - eg
+      - intantiate class ~A~ with 3 fields
+      - call the method ~m~ 
+      - write the result into the second field
+      - read the third field
+
+      #+begin_src vapor
+      // instantiate:
+      r1 = HeapAllocZ(16)
+      [r1] = vmt_Foo
+
+      // method call:
+      // deref instance
+      r2 = [r1]
+      // deref vmt + offset
+      r3 = [r2 + 0]
+      r4 = call r2()
+
+      // field write
+      [r1 + 8] = r3
+
+      // field read
+      r5 = [r1 + 12]
+      #+end_src
+
+  - Methods
+- Virtual Method Tables
+  - Why do we need VMTs?
+
+  #+begin_src java
+  class A { void m(){ ... } }
+
+  class B extends A { void m(){ ... } }
   
-#   class P { 
-#     void main(A a){ 
-#       // which implementation of m?
-#       return a.m(); 
-#     } 
-#   }
-#   #+end_src
+  class P { 
+    void n(A a){ 
+      // which implementation of m?
+      a.m(); 
+    } 
+  }
+  #+end_src
 
-#   #+begin_src vapor
-#   const vmt_A
-#     :A.m
+  #+begin_src vapor
+  const vmt_A
+    :A.m
 
-#   const vmt_B
-#     ??
-#   #+end_src
+  const vmt_B
+    ??
+  #+end_src
 
-#   - Two conventions
-#     1. vmt label names
-#     2. method names/labels
+  - Two conventions
+    1. table labels
+    2. method labels
 
-#   #+begin_src java
-#   class A { 
-#     void m(){ ... } 
-#     void l(){ ... }
-#   }
+  #+begin_src java
+  class A { 
+    void m(){ ... } 
+    void l(){ ... }
+  }
 
-#   class B extends A { void m(){ ... } }
-#   #+end_src
+  class B extends A { void m(){ ... } }
+  #+end_src
 
-#   #+begin_src vapor
-#   const vmt_A
-#     :A.m
-#     :A.l
+  #+begin_src vapor
+  const vmt_A
+    :A.m
+    :A.l
 
-#   const vmt_B
-#     ??
-#   #+end_src
+  const vmt_B
+    ??
+  #+end_src
 
-#   - Third convention, method definition occurs in defined order
+  - Third convention, method definition occurs in defined order
 
-#   - Lookup may be slow, when/how can we optimize?
-# - member variables/fields
-#   - instance allocation
-#   - enough memory for vmt ref and fields, ~(1 + |fields|) * 4~ 
-#   - eg
-#     - intantiate class ~Foo~ with 3 fields
-#     - call the second method (no params)
-#     - write the result into the second field
-#     - read the third field
-#     #+begin_src vapor
-#     // instantiate:
-#     r1 = HeapAllocZ(16)
-#     [r1] = vmt_Foo
+  - Lookup may be slow, when/how can we optimize?
+- ~class id { t1 id1 ... tn idn }~
+  - fields
+    - keep track use "byte offset"
+    - anything else?
+  - methods
+    - for each method create a label in the const table
+    - table label at first entry
+      - ~new X(); -> HeapAllocZ(<xsize>); [ri + 0] = :vmt_X~ 
 
-#     // method call:
-#     // deref instance
-#     r2 = [r1]
-#     // deref vmt + offset
-#     r3 = [r2 + 0]
-#     r4 = call r2()
+  - rule
+    #+begin_src rule
+    vmts' = vmts ∪ { const vmt_<id> :m1 ... :mp }
+    layouts' = layouts ∪ { (id1, ... idn ) }
+    c[rest, layouts', vmts'] -> (layouts'', vmts'')
+    ---------------------------------------------------------------
+    c[class id { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
+      -> (layouts'', vmts'')
+    #+end_src
+- ~class id1 extends id2 { ... }~
+  - inheritance?
+  - layout restriction? 
+  - why?
     
-#     // field write
-#     [r1 + 8] = r3
+  - rules
+    #+begin_src rule
+    layouts(id2) =/= bot 
+    layouts' = layouts ∪ { combine(layouts(id2), id1, ... idn ) }
+    vmts' = vmts ∪ { const vmt_<id> :<id>.<m1> ... :<id>.<mp> }
 
-#     // field read
-#     r5 = [r1 + 12]
-#     #+end_src
-    
-# - ~class id { t1 id1 ... tn idn }~
-#   - fields
-#     - keep track use "byte offset"
-#     - anything else?
-#   - methods
-#     - for each method create a label in the const table
-#     - table label at first entry
-#       - ~new X(); -> HeapAllocZ(<xsize>); [ri + 0] = :vmt_X~ 
+    c[rest, layouts', vmts'] -> (layouts'', vmts'')
+    ---------------------------------------------------------------
+    c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
+      -> (layouts'', vmts'')
+    #+end_src
 
-#   - rule
-#     #+begin_src rule
-#     vmts' = vmts ∪ { const vmt_<id> :m1 ... :mp }
-#     layouts' = layouts ∪ { (id1, ... idn ) }
-#     c[rest, layouts', vmts'] -> (layouts'', vmts'')
-#     ---------------------------------------------------------------
-#     c[class id { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
-#       -> (layouts'', vmts'')
-#     #+end_src
-      
+    #+begin_src rule
+    vmts' = vmts ∪ { const vmt_<id> :<id>.<m1> ... :<id>.<mp> }
 
-# - ~class id1 extends id2 { ... }~
-#   - inheritance?
-#   - layout restriction? 
-#   - why?
-    
-#   - rules
-#     #+begin_src rule
-#     layouts(id2) =/= bot 
-#     layouts' = layouts ∪ { combine(layouts(id2), id1, ... idn ) }
-#     vmts' = vmts ∪ { const vmt_<id> :<id>.<m1> ... :<id>.<mp> }
+    c[rest, layouts, vmts'] -> (layouts', vmts'')
+    layouts'' = layouts' ∪ { combine(layouts(id2), id1, ... idn ) }
+    ----------------------------------------------------------------------------
+    c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
+      -> (layouts'', vmts'')
+    #+end_src
 
-#     c[rest, layouts', vmts'] -> (layouts'', vmts'')
-#     ---------------------------------------------------------------
-#     c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
-#       -> (layouts'', vmts'')
-#     #+end_src
+    - missing layout details?
+      - sorting 
+      - ~combine~
+        #+begin_src rule
+        combine(pids, cid :: crest) = 
+          if cid in pids then combi 
+        #+end_src
+- ~class id { void main ... }~
 
-#     #+begin_src rule
-#     vmts' = vmts ∪ { const vmt_<id> :<id>.<m1> ... :<id>.<mp> }
+  #+begin_rule src 
+  c[m c1 ... cq, ∅, ∅] -> (layouts, vmts)   
+  m[m c1 ... cq, layouts, vmts] -> (ms)
+  ---------------------------------------------------------------------
+  [m c1 ... cq ] -> <vmts>
+                    <ms(Main)>
+                    <ms>
+  #+end_rule
+- ~e.id(...)~
+  - method dispatch
+  - compilation
+  - example code
+- ~new 
+  - instance allocation
+  - enough memory for vmt ref and fields, ~(1 + |fields|) * 4~ 
+  - eg
+    - assuming public access to member variables
+    - intantiate class ~Foo~ with 3 fields
+    - call the second method (no params)
+    - write the result into the second field
+    - read the third field
+    #+begin_src vapor
+    // instantiate: r1 = HeapAllocZ(16) [r1] = vmt_Foo
 
-#     c[rest, layouts, vmts'] -> (layouts', vmts'')
-#     layouts'' = layouts' ∪ { combine(layouts(id2), id1, ... idn ) }
-#     ----------------------------------------------------------------------------
-#     c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
-#       -> (layouts'', vmts'')
-#     #+end_src
+    // method call: // deref instance r2 = [r1] // deref vmt + offset r3 = [r2 +
+    0] r4 = call r2()
 
-#     - missing layout details?
-#       - sorting 
-#       - ~combine~
-#         #+begin_src rule
-#         combine(pids, cid :: crest) = 
-#           if cid in pids then combi 
-#         #+end_src
+    // field write [r1 + 8] = r3
 
-    
-# - ~class id { void main ... }~
-
-#   #+begin_rule src 
-#   c[m c1 ... cq, ∅, ∅] -> (layouts, vmts)   
-#   m[m c1 ... cq, layouts, vmts] -> (ms)
-#   ---------------------------------------------------------------------
-#   [m c1 ... cq ] -> <vmts>
-#                     <ms(Main)>
-#                     <ms>
-#   #+end_rule
-
-# - ~e.id(...)~
-#   - method dispatch
-#   - compilation
-#   - example code
-
-# - ~e.id~
-#   - lookup
-#   - method dispatch
-#   - compilation
-#   - example code
-
-# - ~t id( t1 id1 ... tn idn ){ ... }~
-#   - this
-
-# - ~new~
-#   - init for constructor
-#   - compilation
-#   - 
-# - ~if~
-# - ~while~
+    // field read r5 = [r1 + 12] #+end_src
+- ~t id( t1 id1 ... tn idn ){ ... }~
+  - this
+- ~new~
+  - init for constructor
+  - compilation
+  - 
+- ~if~
+- ~while~
