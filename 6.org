@@ -6,7 +6,7 @@
 #+OPTIONS: toc:nil
 
 * Java ~> Vapor
-- ~class id { void main ... }~
+- ~m c1 ... cq~
   - Rule
     #+begin_src rule
     clss[m c1 ... cq, ∅, ∅] -> (layouts, vmts)   
@@ -80,9 +80,9 @@
       }
 
       class P { 
-        void n(A a){ 
+        void n(A aOrB){ 
           // which implementation of m?
-          a.m(); 
+          aOrB.m(); 
         } 
       }
       #+end_src
@@ -92,7 +92,8 @@
         :A.m
 
       const vmt_B
-        ??
+        :B.m 
+
       #+end_src
     - Two conventions
       1. table labels
@@ -158,21 +159,23 @@
     #+end_src
 - ~e.id(...)~
   - Where do we get the method from?
+  - Why does the factorial example check null?
   - Rule
     #+begin_src rule 
     expr[e, i+1, layouts, vmts] -> (code1, i1)
     expr[e1, i1, layouts, vmts] -> (code2, i2)
     ...
-    expr[en, in-1, layouts, vmts] -> (coden, in)
+    expr[en, in, layouts, vmts] -> (coden+1, in+1)
     offset = offset(vmts(classof(e)), id)
-    -------------------------------------------
+    --------------------------------------------
     expr[e.id( e1, ..., en ), i, layouts, vmts] ->
       ( <code1>
         <code2>
         ...
         <coden>
-        ri_mcall = [r<i+1> + offset]
-        r<i> = call ri_mcall(r<i1> ... r<in-1>), in )
+        r<i>_vmt = [r<i+1>]
+        r<i>_mcall = [r<i>_vmt + offset]
+        r<i> = call ri_mcall(r<i+1> r<i1> ... r<in-1>), in+1 )
     #+end_src
 - ~class id { t1 id1 ... tn idn }~
   - Fields, see ~new id()~ above
@@ -181,7 +184,7 @@
     - table label at first entry
   - Rule
     #+begin_src rule
-    vmts' = vmts ∪ { const vmt_<id> :m1 ... :mp }
+    vmts' = vmts ∪ { const vmt_<id> :<id>.m1 ... :<id>.mp }
     layouts' = layouts ∪ { (id1, ... idn ) }
     clss[rest, layouts', vmts'] -> (layouts'', vmts'')
     ---------------------------------------------------------------
@@ -214,37 +217,74 @@
         -> (layouts'', vmts'')
       #+end_src
     - Missing layout details?
-      - sorting 
-      - ~combine~
-      - you must ensure that both parent class instances and child class instances
+      - fields with the same name?
+      - field placement?
+      - parent field references?
 - ~t id( t1 id1 ... tn idn ){ ... }~
   - Class Rule
     #+begin_src rule
-    meth[m1, i+1, layouts, vmts] -> (m1code, i1)
+    meth[id, m1, i+1, layouts, vmts] -> (m1code, i1)
     ...
-    meth[mn, in-1, layouts, vmts] -> (mncode, in)
+    meth[id, mn, in, layouts, vmts] -> (mn+1code, in+1)
     --------------------------------------------------------
     meth[class id ... { ...; m1 ... mn }, i, layouts, vmts] ->
-      ({ m1 -> m1code, ..., mn -> mncode})
+      ({ m1 -> m1code, ..., mn -> mn+1code})
     #+end_src
   - Rule
     #+begin_src rule
     stmt[s1, i+1, layouts, vmts] -> (code1, i1)
     stmt[s1, i1, layouts, vmts] -> (code2, i2)
-    stmt[s1, in-1, layouts, vmts] -> (coden, in)
-    expr[e, in, layouts, vmts] -> (codee, ie)
+    stmt[s1, in, layouts, vmts] -> (coden+1, in+1)
+    expr[e, in+1, layouts, vmts] -> (codee, ie)
     ------------------------------------------------------------
     meth[C, t id( t1 id1 ... tn idn ){ ... s1; .... sn; return e }, 
       i, 
       layouts, 
       vmts] ->
-      ( func <C>_<id>(id1 ... idn): 
+      ( func <C>_<id>(this id1 ... idn): 
           <code1>
           <code1>
           ...
           <coden>
           <codee>
-          ret i<in>, ie )
+          ret i<in+1>, ie )
     #+end_src
-- ~if~
-- ~while~
+- ~if (e) s1 else s2~
+  - Rule
+    #+begin_src rule
+    expr[e, i+1, layouts, vmts] -> (code1, i')
+    stmt[s1, i', layouts, vmts] -> (code2, i'')
+    stmt[s2, i'', layouts, vmts] -> (code3, i''')
+    -------------------------------
+    stmt[if (e) s1 else s2, i, layouts, vmts] ->
+      ( <code1>
+        ifz r<i+1> goto if<i>_else:
+          <code2>
+          goto if<i>_end:
+        if<i>_else: 
+          <code3>
+        if<i>_end:,  i''')
+    #+end_src
+  - What happened to the ~r<i> = ...~
+  - Boolean representation 
+    - ~!e~
+      - ~!false = 1-0 = 1~, ~!true = 1-1 = 0~,
+    - ~e1 && e2~
+      - ~true && false = 1 * 0 = 0~, ~true && true = 1 * 1 = 1~
+    - ~e1 || e2~
+      - ??
+  - short circuiting?
+- ~while (e) s~
+  - Rule
+    #+begin_src rule
+    expr[e, i+1, lay¯outs, vmts] -> (code1, i')
+    stmt[s, i', layouts, vmts] -> (code2, i'')
+    -------------------------------------------
+    stmt[while (e) s , i, layots, vmts] ->
+      ( while<i>_cond: 
+          <code1>
+        ifz r<i+1> goto while<i>_end:
+          <code2>
+          goto while<i>_cond
+        while<i>_end:,  i'')
+    #+end_src

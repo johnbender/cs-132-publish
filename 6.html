@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-05-05 Thu 13:27 -->
+<!-- 2016-05-06 Fri 15:54 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="viewport" content="width=device-width, initial-scale=1" />
 <title>Compilation for Java</title>
@@ -152,15 +152,15 @@ for the JavaScript code in this tag.
 <h2 id="orgheadline1"><span class="section-number-2">1</span> Java ~&gt; Vapor</h2>
 <div class="outline-text-2" id="text-1">
 <ul class="org-ul">
-<li><code>class id { void main ... }</code>
+<li><code>m c1 ... cq</code>
 <ul class="org-ul">
 <li><p>
 Rule
 </p>
 <div class="org-src-container">
 
-<pre class="src src-rule">c[m c1 ... cq, ∅, ∅] -&gt; (layouts, vmts)   
-m[m c1 ... cq, layouts, vmts] -&gt; (ms)
+<pre class="src src-rule">clss[m c1 ... cq, ∅, ∅] -&gt; (layouts, vmts)   
+meth[m c1 ... cq, layouts, vmts] -&gt; (ms)
 ---------------------------------------------------------------------
 [m c1 ... cq ] -&gt; &lt;vmts&gt;
                   &lt;ms(Main)&gt;
@@ -168,7 +168,6 @@ m[m c1 ... cq, layouts, vmts] -&gt; (ms)
 </pre>
 </div></li>
 </ul></li>
-
 <li><code>new id()</code>
 <ul class="org-ul">
 <li>First approximation 
@@ -179,22 +178,22 @@ e.g.
 </p>
 <div class="org-src-container">
 
-<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span>
-  <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">foo</span>;       
-  <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">bar</span>;
-  <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">baz</span>;
+<pre class="src src-java"><span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #3a81c3;">{</span>
+  <span style="color: #ba2f59; font-weight: bold;">int</span> <span style="color: #715ab1;">foo</span>;       
+  <span style="color: #ba2f59; font-weight: bold;">int</span> <span style="color: #715ab1;">bar</span>;
+  <span style="color: #ba2f59; font-weight: bold;">int</span> <span style="color: #715ab1;">baz</span>;
 
-  <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span>      
-    <span style="color: #268bd2; font-weight: bold;">return</span> foo;  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">support field refs</span>
-  <span style="color: #8700af;">}</span>
-<span style="color: #268bd2;">}</span>
+  <span style="color: #ba2f59; font-weight: bold;">int</span> <span style="color: #6c3163; font-weight: bold;">m</span><span style="color: #6c3163;">(){</span>      
+    <span style="color: #3a81c3; font-weight: bold;">return</span> foo;  <span style="color: #2aa1ae; background-color: #ecf3ec;">// </span><span style="color: #2aa1ae; background-color: #ecf3ec;">support field refs</span>
+  <span style="color: #6c3163;">}</span>
+<span style="color: #3a81c3;">}</span>
 
-<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">Main</span> <span style="color: #268bd2;">{</span> 
-  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">main</span><span style="color: #8700af;">(</span> ... <span style="color: #8700af;">){</span> 
-    <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #af5fd7;">a</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">A</span><span style="color: #2aa198;">()</span>; 
-    a.m<span style="color: #2aa198;">()</span>;       <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">support method calls</span>
-  <span style="color: #8700af;">}</span>
-<span style="color: #268bd2;">}</span>
+<span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">Main</span> <span style="color: #3a81c3;">{</span> 
+  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">main</span><span style="color: #6c3163;">(</span> ... <span style="color: #6c3163;">){</span> 
+    <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #715ab1;">a</span> = <span style="color: #3a81c3; font-weight: bold;">new</span> <span style="color: #ba2f59; font-weight: bold;">A</span><span style="color: #2d9574;">()</span>; 
+    a.m<span style="color: #2d9574;">()</span>;       <span style="color: #2aa1ae; background-color: #ecf3ec;">// </span><span style="color: #2aa1ae; background-color: #ecf3ec;">support method calls</span>
+  <span style="color: #6c3163;">}</span>
+<span style="color: #3a81c3;">}</span>
 </pre>
 </div></li>
 </ul></li>
@@ -243,20 +242,20 @@ e.g.
 </p>
 <div class="org-src-container">
 
-<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> 
-  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> 
-<span style="color: #268bd2;">}</span>
+<pre class="src src-java"><span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #3a81c3;">{</span> 
+  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">m</span><span style="color: #6c3163;">(){</span> ... <span style="color: #6c3163;">}</span> 
+<span style="color: #3a81c3;">}</span>
 
-<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">B</span> <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> 
-  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> 
-<span style="color: #268bd2;">}</span>
+<span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">B</span> <span style="color: #3a81c3; font-weight: bold;">extends</span> <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #3a81c3;">{</span> 
+  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">m</span><span style="color: #6c3163;">(){</span> ... <span style="color: #6c3163;">}</span> 
+<span style="color: #3a81c3;">}</span>
 
-<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">P</span> <span style="color: #268bd2;">{</span> 
-  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">n</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #af5fd7;">a</span><span style="color: #8700af;">){</span> 
-    <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">which implementation of m?</span>
-    a.m<span style="color: #2aa198;">()</span>; 
-  <span style="color: #8700af;">}</span> 
-<span style="color: #268bd2;">}</span>
+<span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">P</span> <span style="color: #3a81c3;">{</span> 
+  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">n</span><span style="color: #6c3163;">(</span><span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #715ab1;">aOrB</span><span style="color: #6c3163;">){</span> 
+    <span style="color: #2aa1ae; background-color: #ecf3ec;">// </span><span style="color: #2aa1ae; background-color: #ecf3ec;">which implementation of m?</span>
+    aOrB.m<span style="color: #2d9574;">()</span>; 
+  <span style="color: #6c3163;">}</span> 
+<span style="color: #3a81c3;">}</span>
 </pre>
 </div>
 
@@ -266,7 +265,7 @@ e.g.
   :A.m
 
 const vmt_B
-  ??
+  :B.m
 </pre>
 </div></li>
 <li>Two conventions
@@ -281,12 +280,12 @@ e.g.
 </p>
 <div class="org-src-container">
 
-<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> 
-  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> 
-  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">l</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span>
-<span style="color: #268bd2;">}</span>
+<pre class="src src-java"><span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #3a81c3;">{</span> 
+  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">m</span><span style="color: #6c3163;">(){</span> ... <span style="color: #6c3163;">}</span> 
+  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">l</span><span style="color: #6c3163;">(){</span> ... <span style="color: #6c3163;">}</span>
+<span style="color: #3a81c3;">}</span>
 
-<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">B</span> <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> <span style="color: #268bd2;">}</span>
+<span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">B</span> <span style="color: #3a81c3; font-weight: bold;">extends</span> <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #3a81c3;">{</span> <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">m</span><span style="color: #6c3163;">(){</span> ... <span style="color: #6c3163;">}</span> <span style="color: #3a81c3;">}</span>
 </pre>
 </div>
 
@@ -349,7 +348,7 @@ Rule
 
 <pre class="src src-rule">size = size(layouts(id))
 -------------------------------
-e[new id(), i, layouts, vmts] -&gt;
+expr[new id(), i, layouts, vmts] -&gt;
    (r&lt;i&gt; = HeapAllocZ(&lt;size&gt;)
     [r&lt;i&gt;] = :vmt_&lt;id&gt;,       i+1 )
 </pre>
@@ -358,24 +357,26 @@ e[new id(), i, layouts, vmts] -&gt;
 <li><code>e.id(...)</code>
 <ul class="org-ul">
 <li>Where do we get the method from?</li>
+<li>Why does the factorial example check null?</li>
 <li><p>
 Rule
 </p>
 <div class="org-src-container">
 
-<pre class="src src-rule">e[e, i+1, layouts, vmts] -&gt; (code1, i1)
-e[e1, i1, layouts, vmts] -&gt; (code2, i2)
+<pre class="src src-rule">expr[e, i+1, layouts, vmts] -&gt; (code1, i1)
+expr[e1, i1, layouts, vmts] -&gt; (code2, i2)
 ...
-e[en, in-1, layouts, vmts] -&gt; (coden, in)
+expr[en, in, layouts, vmts] -&gt; (coden+1, in+1)
 offset = offset(vmts(classof(e)), id)
--------------------------------------------
-e[e.id( e1, ..., en ), i, layouts, vmts] -&gt;
+--------------------------------------------
+expr[e.id( e1, ..., en ), i, layouts, vmts] -&gt;
   ( &lt;code1&gt;
     &lt;code2&gt;
     ...
     &lt;coden&gt;
-    ri_mcall = [r&lt;i+1&gt; + offset]
-    r&lt;i&gt; = call ri_mcall(r&lt;i1&gt; ... r&lt;in-1&gt;), in)
+    r&lt;i&gt;_vmt = [r&lt;i+1&gt;]
+    r&lt;i&gt;_mcall = [r&lt;i&gt;_vmt + offset]
+    r&lt;i&gt; = call ri_mcall(r&lt;i+1&gt; r&lt;i1&gt; ... r&lt;in-1&gt;), in+1 )
 </pre>
 </div></li>
 </ul></li>
@@ -392,11 +393,11 @@ Rule
 </p>
 <div class="org-src-container">
 
-<pre class="src src-rule">vmts' = vmts ∪ { const vmt_&lt;id&gt; :m1 ... :mp }
+<pre class="src src-rule">vmts' = vmts ∪ { const vmt_&lt;id&gt; :&lt;id&gt;.m1 ... :&lt;id&gt;.mp }
 layouts' = layouts ∪ { (id1, ... idn ) }
-c[rest, layouts', vmts'] -&gt; (layouts'', vmts'')
+clss[rest, layouts', vmts'] -&gt; (layouts'', vmts'')
 ---------------------------------------------------------------
-c[class id { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
+clss[class id { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts] 
   -&gt; (layouts'', vmts'')
 </pre>
 </div></li>
@@ -404,8 +405,8 @@ c[class id { t1 id1 ... tn idn m1 ... mp } rest, layouts, vmts]
 <li><code>class id1 extends id2 { ... }</code>
 <ul class="org-ul">
 <li>We must take the parent class layout into account, here <code>combine</code></li>
-<li>Single pass can get the layout from the parent if it is defined before
-or after the child class</li>
+<li>Single pass can get the layout from the parent if it is defined before or
+after the child class</li>
 <li>Rules
 <ul class="org-ul">
 <li><p>
@@ -417,9 +418,9 @@ If the parent class is defined before
 layouts' = layouts ∪ { combine(layouts(id2), id1, ... idn ) }
 vmts' = vmts ∪ { const vmt_&lt;id&gt; :&lt;id&gt;.&lt;m1&gt; ... :&lt;id&gt;.&lt;mp&gt; }
 
-c[rest, layouts', vmts'] -&gt; (layouts'', vmts'')
+clss[rest, layouts', vmts'] -&gt; (layouts'', vmts'')
 ---------------------------------------------------------------
-c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp }  rest, layouts, vmts] 
+clss[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp }  rest, layouts, vmts] 
   -&gt; (layouts'', vmts'')
 </pre>
 </div></li>
@@ -429,18 +430,18 @@ If the parent class is defined after
 <div class="org-src-container">
 
 <pre class="src src-rule">vmts' = vmts ∪ { const vmt_&lt;id&gt; :&lt;id&gt;.&lt;m1&gt; ... :&lt;id&gt;.&lt;mp&gt; }
-c[rest, layouts, vmts'] -&gt; (layouts', vmts'')
+clss[rest, layouts, vmts'] -&gt; (layouts', vmts'')
 layouts'' = layouts' ∪ { combine(layouts(id2), id1, ... idn ) }
 ----------------------------------------------------------------------------
-c[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp }  rest, layouts, vmts] 
+clss[class id1 extends id2 { t1 id1 ... tn idn m1 ... mp }  rest, layouts, vmts] 
   -&gt; (layouts'', vmts'')
 </pre>
 </div></li>
 <li>Missing layout details?
 <ul class="org-ul">
-<li>sorting</li>
-<li><code>combine</code></li>
-<li>you must ensure that both parent class instances and child class instances</li>
+<li>fields with the same name?</li>
+<li>field placement?</li>
+<li>parent field references?</li>
 </ul></li>
 </ul></li>
 </ul></li>
@@ -451,12 +452,12 @@ Class Rule
 </p>
 <div class="org-src-container">
 
-<pre class="src src-rule">m[m1, i+1, layouts, vmts] -&gt; (m1code, i1)
+<pre class="src src-rule">meth[id, m1, i+1, layouts, vmts] -&gt; (m1code, i1)
 ...
-m[mn, in-1, layouts, vmts] -&gt; (mncode, in)
+meth[id, mn, in, layouts, vmts] -&gt; (mn+1code, in+1)
 --------------------------------------------------------
-m[class id ... { ...; m1 ... mn }, i, layouts, vmts] -&gt;
-  ({ m1 -&gt; m1code, ..., mn -&gt; mncode})
+meth[class id ... { ...; m1 ... mn }, i, layouts, vmts] -&gt;
+  ({ m1 -&gt; m1code, ..., mn -&gt; mn+1code})
 </pre>
 </div></li>
 <li><p>
@@ -464,34 +465,91 @@ Rule
 </p>
 <div class="org-src-container">
 
-<pre class="src src-rule">s[s1, i+1, layouts, vmts] -&gt; (code1, i1)
-s[s1, i1, layouts, vmts] -&gt; (code2, i2)
-s[s1, in-1, layouts, vmts] -&gt; (coden, in)
-e[e, in, layouts, vmts] -&gt; (codee, ie)
+<pre class="src src-rule">stmt[s1, i+1, layouts, vmts] -&gt; (code1, i1)
+stmt[s1, i1, layouts, vmts] -&gt; (code2, i2)
+stmt[s1, in, layouts, vmts] -&gt; (coden+1, in+1)
+expr[e, in+1, layouts, vmts] -&gt; (codee, ie)
 ------------------------------------------------------------
-m[C, t id( t1 id1 ... tn idn ){ ... s1; .... sn; return e }, 
+meth[C, t id( t1 id1 ... tn idn ){ ... s1; .... sn; return e }, 
   i, 
   layouts, 
   vmts] -&gt;
-  ( func &lt;C&gt;_&lt;id&gt;(id1 ... idn): 
+  ( func &lt;C&gt;_&lt;id&gt;(this id1 ... idn): 
       &lt;code1&gt;
       &lt;code1&gt;
       ...
       &lt;coden&gt;
       &lt;codee&gt;
-      ret i&lt;in&gt;, ie )
+      ret i&lt;in+1&gt;, ie )
 </pre>
 </div></li>
 </ul></li>
-<li><code>if</code></li>
-<li><code>while</code></li>
+<li><code>if (e) s1 else s2</code>
+<ul class="org-ul">
+<li><p>
+Rule
+</p>
+<div class="org-src-container">
+
+<pre class="src src-rule">expr[e, i+1, layouts, vmts] -&gt; (code1, i')
+stmt[s1, i', layouts, vmts] -&gt; (code2, i'')
+stmt[s2, i'', layouts, vmts] -&gt; (code3, i''')
+-------------------------------
+stmt[if (e) s1 else s2, i, layouts, vmts] -&gt;
+  ( &lt;code1&gt;
+    ifz r&lt;i+1&gt; goto if&lt;i&gt;_else:
+      &lt;code2&gt;
+      goto if&lt;i&gt;_end:
+    if&lt;i&gt;_else: 
+      &lt;code3&gt;
+    if&lt;i&gt;_end:,  i''')
+</pre>
+</div></li>
+<li>What happened to the <code>r&lt;i&gt; = ...</code></li>
+<li>Boolean representation 
+<ul class="org-ul">
+<li><code>!e</code>
+<ul class="org-ul">
+<li><code>!false = 1-0 = 1</code>, <code>!true = 1-1 = 0</code>,</li>
+</ul></li>
+<li><code>e1 &amp;&amp; e2</code>
+<ul class="org-ul">
+<li><code>true &amp;&amp; false = 1 * 0 = 0</code>, <code>true &amp;&amp; true = 1 * 1 = 1</code></li>
+</ul></li>
+<li><code>e1 || e2</code>
+<ul class="org-ul">
+<li>??</li>
+</ul></li>
+</ul></li>
+<li>short circuiting?</li>
+</ul></li>
+<li><code>while (e) s</code>
+<ul class="org-ul">
+<li><p>
+Rule
+</p>
+<div class="org-src-container">
+
+<pre class="src src-rule">expr[e, i+1, lay¯outs, vmts] -&gt; (code1, i')
+stmt[s, i', layouts, vmts] -&gt; (code2, i'')
+-------------------------------------------
+stmt[while (e) s , i, layots, vmts] -&gt;
+  ( while&lt;i&gt;_cond: 
+      &lt;code1&gt;
+    ifz r&lt;i+1&gt; goto while&lt;i&gt;_end:
+      &lt;code2&gt;
+      goto while&lt;i&gt;_cond
+    while&lt;i&gt;_end:,  i'')
+</pre>
+</div></li>
+</ul></li>
 </ul>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: John Bender</p>
-<p class="date">Created: 2016-05-05 Thu 13:27</p>
+<p class="date">Created: 2016-05-06 Fri 15:54</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
