@@ -291,4 +291,3 @@
        
   - What happens if can't keep removing nodes? (e.g. ~k = 2~)
     - proceed as normal, spill with a very connected nodes when you can't
-    - 
