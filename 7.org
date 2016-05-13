@@ -226,6 +226,7 @@
  
   b -> e
   b -> f
+  b -> c
 
   c -> d 
   c -> f
@@ -252,6 +253,7 @@
        edge[arrowhead=none];
        b -> e
        b -> f
+       b -> c
 
        c -> f
 
@@ -259,9 +261,8 @@
        }
        #+end_src
 
-    2. remove ~c~, ~stack = <c, d, a>~
-    3. dump the rest (order doesn't matter), ~stack = <f, e, b, c, d, a>~
-    4. start popping and choose colors/registers under constraints
+    2. dump the rest (order doesn't matter), ~stack = <f, e, b, c, d, a>~
+    3. start popping and choose colors/registers under constraints
        - ~f = r1~
        - ~e = r2~
        - ~b = r3~
@@ -279,6 +280,7 @@
 
        "b, r3" -> "e, r2"
        "b, r3" -> "f, r1"
+       "b, r3" -> "c, r2"
 
        "c, r2" -> "d, r1"
        "c, r2" -> "f, r1"
@@ -290,4 +292,4 @@
        #+end_src
        
   - What happens if can't keep removing nodes? (e.g. ~k = 2~)
-    - proceed as normal, spill with a very connected nodes when you can't
+    - proceed as normal, spill with a very connected node when you can't
