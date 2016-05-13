@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-05-12 Thu 16:38 -->
+<!-- 2016-05-13 Fri 10:53 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="viewport" content="width=device-width, initial-scale=1" />
 <title>Liveness Analysis, Linear Scan</title>
@@ -158,6 +158,17 @@ for the JavaScript code in this tag.
 <li>Mapping from locals</li>
 
 <li><p>
+The Golden Rule
+</p>
+
+<blockquote>
+<p>
+A variable <code>v</code> is live on edge <code>e</code> if there is a directed path from <code>e</code> to a use of <code>v</code> that does
+not pass through any assignment to <code>v</code>
+</p>
+</blockquote></li>
+
+<li><p>
 example
 </p>
 
@@ -171,14 +182,14 @@ example
 </ul>
 <pre class="example">
                              i         
-L1: i = 1                    .  
+L1: i = 1                    .
 L2: y = i + 2                |
 L3: if y &gt; 10 then goto L9   |
 L4: b = y + 3                |
 L5: if i &gt; 20 goto L7        |
 L6: i = i + 1                |
 L7: b = b + i                |
-L8: goto L2                  | &lt;- why? why not ˙? 
+L8: goto L2                  | &lt;- why is this live out?
 L9: y = b + 4                
 L10: return y
 </pre>
@@ -188,7 +199,7 @@ L10: return y
 L1: i = 1                    .  
 L2: y = i + 2                |  .
 L3: if y &gt; 10 then goto L9   |  |
-L4: b = y + 3                |  ˙ &lt;- why?
+L4: b = y + 3                |  ˙ &lt;- why? What about L8?
 L5: if i &gt; 20 goto L7        |   
 L6: i = i + 1                |  
 L7: b = b + i                | 
@@ -199,34 +210,16 @@ L10: return y                   ˙ &lt;- why?
 
 <pre class="example">
                              i  y  b
-L1: i = 1                    .     |
-L2: y = i + 2                |  .  |
-L3: if y &gt; 10 then goto L9   |  |  | &lt;- why?
-L4: b = y + 3                |  |  . &lt;- why?
+L1: i = 1                    .     | &lt;- what?
+L2: y = i + 2                |  .  | &lt;- why?
+L3: if y &gt; 10 then goto L9   |  |  | &lt;- when? how?
+L4: b = y + 3                |  |  . &lt;- why isn't b live-in?
 L5: if i &gt; 20 goto L7        |     |
 L6: i = i + 1                |     |
 L7: b = b + i                |     |
 L8: goto L2                  |     |
 L9: y = b + 4                   .  ˙
 L10: return y                   ˙
-</pre>
-
-<p>
-Quick code change on L2:
-</p>
-
-<pre class="example">
-                             i  y  b
-L1: i = 1                    .     
-L2: y = i + *b*              |  .  | &lt;- why?
-L3: if y &gt; 10 then goto L9   |  |  | &lt;- why? (live out to L9, not to L4)
-L4: b = y + 3                |  |  . &lt;- why?
-L5: if i &gt; 20 goto L7        |     |
-L6: i = i + 1                |     |
-L7: b = b + i                |     |
-L8: goto L2                        |
-L9: y = b + 4                   .  
-L10: return y
 </pre></li>
 
 <li>Exam questions (F12) example from above,
@@ -244,6 +237,10 @@ L10: return y
 <h2 id="orgheadline2"><span class="section-number-2">2</span> Linear Scan</h2>
 <div class="outline-text-2" id="text-2">
 <ul class="org-ul">
+<li>Question from piazza 
+In the paper's model is <code>d</code> live at node 4? (Note, there is a critical
+difference between live at the nodes and live on an edge)</li>
+
 <li><p>
 example
 </p>
@@ -281,20 +278,191 @@ c = b + e            |  |     ˙  |
 f = b + f            |  |        |
 b = c + f            |  ˙        ˙
 return b + 5         ˙
+</pre>
+
+<p>
+iterations of linear scan for two registers, <code>R = {r1, r2}</code> with the active
+sequence <code>A = &lt;&gt;</code> and the mapping of variables <code>M = {}</code>
+</p>
+
+<ol class="org-ol">
+<li>live interval for <code>a</code>
+<ul class="org-ul">
+<li>expire old intervals does nothing</li>
+<li><code>|A| &lt; |R|</code></li>
+<li><code>M = {a -&gt; r1}</code></li>
+<li><code>A = &lt;a&gt;</code></li>
+</ul></li>
+
+<li>live interval for <code>b</code>
+<ul class="org-ul">
+<li>expire old intervals does nothing</li>
+<li><code>|A| &lt; |R|</code></li>
+<li><code>M = {a -&gt; r1, b -&gt; r2}</code></li>
+<li><code>A = &lt;a, b&gt;</code></li>
+</ul></li>
+
+<li>live interval for <code>c</code>
+<ul class="org-ul">
+<li>expire old intervals does nothing</li>
+<li><code>|A| = |R|</code></li>
+<li>spill chooses last interval <code>b</code></li>
+<li><code>b</code>'s endpoint is further than <code>c</code>'s</li>
+<li><code>b</code> spills!</li>
+<li>remove <code>b</code> from active, <code>A = &lt;a, c&gt;</code></li>
+<li><code>c</code> takes the register</li>
+<li><code>M = {a -&gt; r1, c -&gt; r2}</code></li>
+<li><code>A = &lt;a, c&gt;</code></li>
+</ul></li>
+
+<li>live interval for <code>d</code>
+<ul class="org-ul">
+<li>expire old interval removes <code>a</code> from <code>A</code></li>
+<li><code>|A| &lt; |R|</code></li>
+<li><code>M = {d -&gt; r1, c -&gt; r2}</code>
+<ul class="org-ul">
+<li>Why <code>r1</code>?</li>
+</ul></li>
+<li><code>A = &lt;c, d&gt;</code></li>
+</ul></li>
+
+<li>live interval for <code>e</code>
+<ul class="org-ul">
+<li>expire old intervals does nothing</li>
+<li>spill chooses last interval <code>c</code></li>
+<li><code>c</code>'s endpoint is further than <code>e</code>'s</li>
+<li><code>c</code> spills!</li>
+<li>remove <code>c</code> from active, <code>A = &lt;d&gt;</code></li>
+<li><code>e</code> takes the register</li>
+<li><code>M = {d -&gt; r1, e -&gt; r2}</code></li>
+<li><code>A = &lt;d, e&gt;</code></li>
+</ul></li>
+
+<li>live interval for <code>e</code>
+<ul class="org-ul">
+<li>expire old interval removes <code>d</code> from <code>A</code>, <code>A = &lt;e&gt;</code></li>
+<li><code>|A| &lt; |R|</code></li>
+<li><code>M = {e -&gt; r2, f -&gt; r1}</code></li>
+<li><code>A = &lt;e, f&gt;</code></li>
+</ul></li>
+</ol>
+<pre class="example">
+                  a  b  c  d  e  f
+
+r1a = 1           .     
+b   = 2           |  .  
+c   = r1a + b     |  |  .
+r1d = r1a + c     ˙  |  |  .
+r2e = c + r1d        |  |  |  .
+r1f = r1d + 3        |  |  ˙  |  .
+b   = r2e + 4        |  |     |  |
+c   = b + r2e        |  |     ˙  |
+r1f = b + r1f        |  |        |
+b   = c + r1f        |  ˙        ˙
+return b + 5         ˙
 </pre></li>
 
-<li>Question from piazza</li>
+<li><p>
+What is the pathological case for linear scan?
+</p>
+
+<pre class="example">
+             a  b  c  d
+
+a = 1        .
+b = a + 1    |  .
+c = b + 1    |  |  .
+d = c + 1    |  |  |  .
+a = d + 1    |  |  |  |
+b = a + 1    ˙  |  |  |
+c = b + 1       ˙  |  |
+d = c + 1          ˙  |
+return d              ˙
+</pre>
+
+<ul class="org-ul">
+<li>How many registers are actually required? (1)</li>
+<li>How many variables will spill? (4 - #regs)</li>
+</ul></li>
 </ul>
 </div>
 </div>
 
 <div id="outline-container-orgheadline3" class="outline-2">
 <h2 id="orgheadline3"><span class="section-number-2">3</span> Graph coloring</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li>K-coloring</li>
+<li><p>
+example, where K = 3
+</p>
+
+<pre class="example">
+                  a  b  c  d  e  f
+
+a = 1             .     
+b = 2             |  .  
+c = a + b         |  ˙  .
+d = a + c         ˙     |  .
+e = c + d               ˙  |  .
+f = d + 3                  ˙  |  .
+b = e + 4            .        |  |
+c = b + e            |  .     ˙  |
+f = b + f            |  |        |
+b = c + f            |  ˙        ˙
+return b + 5         ˙
+</pre>
+
+
+<div class="figure">
+<p><img src="assets/images/interference-graph.png" alt="interference-graph.png" />
+</p>
+</div>
+
+<ul class="org-ul">
+<li>Aside: can this be colored with two colors, why?</li>
+
+<li>remove all nodes that have less than K neighbors (3), put them onto a stack</li>
+<li>after removing nodes check to see if more nodes can be removed</li>
+<li>Heuristic algo, steps
+<ol class="org-ol">
+<li><p>
+remove <code>a</code> and <code>d</code>, <code>stack = &lt;d, a&gt;</code> (top of the stack is to the left)
+</p>
+
+
+<div class="figure">
+<p><img src="assets/images/interference-graph-2.png" alt="interference-graph-2.png" />
+</p>
+</div></li>
+
+<li>remove <code>c</code>, <code>stack = &lt;c, d, a&gt;</code></li>
+<li>dump the rest (order doesn't matter), <code>stack = &lt;f, e, b, c, d, a&gt;</code></li>
+<li><p>
+start popping and choose colors/registers under constraints
+</p>
+<ul class="org-ul">
+<li><code>f = r1</code></li>
+<li><code>e = r2</code></li>
+<li><code>b = r3</code></li>
+<li><code>c = r2</code></li>
+<li><code>d = r1</code></li>
+<li><code>a = r1</code></li>
+</ul>
+
+<div class="figure">
+<p><img src="assets/images/interference-graph-3.png" alt="interference-graph-3.png" />
+</p>
+</div></li>
+</ol></li>
+</ul></li>
+</ul>
+</div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: John Bender</p>
-<p class="date">Created: 2016-05-12 Thu 16:38</p>
+<p class="date">Created: 2016-05-13 Fri 10:53</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

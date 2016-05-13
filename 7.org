@@ -197,5 +197,98 @@
   - How many variables will spill? (4 - #regs)
 
 * Graph coloring
+- K-coloring
+- example, where K = 3
 
+  #+begin_example
+                    a  b  c  d  e  f
+
+  a = 1             .     
+  b = 2             |  .  
+  c = a + b         |  ˙  .
+  d = a + c         ˙     |  .
+  e = c + d               ˙  |  .
+  f = d + 3                  ˙  |  .
+  b = e + 4            .        |  |
+  c = b + e            |  .     ˙  |
+  f = b + f            |  |        |
+  b = c + f            |  ˙        ˙
+  return b + 5         ˙
+  #+end_example
+
+  #+begin_src dot :file assets/images/interference-graph.png :exports results
+  digraph a {
+  layout="circo";
+  node[shape=circle];
+  edge[arrowhead=none];
+  a -> b
+  a -> c
  
+  b -> e
+  b -> f
+
+  c -> d 
+  c -> f
+
+  d -> e
+  
+  e -> f
+
+  }
+  #+end_src
+
+  #+RESULTS:
+  [[file:assets/images/interference-graph.png]]
+
+  - remove all nodes that have less than K neighbors (3), put them onto a stack
+  - after removing nodes check to see if more nodes can be removed
+  - Heuristic algo, steps
+    1. remove ~a~ and ~d~, ~stack = <d, a>~ (top of the stack is to the left)
+
+       #+begin_src dot :file assets/images/interference-graph-2.png :exports results
+       digraph a {
+       layout="circo";
+       node[shape=circle];
+       edge[arrowhead=none];
+       b -> e
+       b -> f
+
+       c -> f
+
+       e -> f
+       }
+       #+end_src
+
+    2. remove ~c~, ~stack = <c, d, a>~
+    3. dump the rest (order doesn't matter), ~stack = <f, e, b, c, d, a>~
+    4. start popping and choose colors/registers under constraints
+       - ~f = r1~
+       - ~e = r2~
+       - ~b = r3~
+       - ~c = r2~
+       - ~d = r1~
+       - ~a = r1~
+
+       #+begin_src dot :file assets/images/interference-graph-3.png :exports results
+       digraph a {
+       layout="circo";
+       node[shape=circle];
+       edge[arrowhead=none];
+       "a, r1" -> "b, r3"
+       "a, r1" -> "c, r2"
+
+       "b, r3" -> "e, r2"
+       "b, r3" -> "f, r1"
+
+       "c, r2" -> "d, r1"
+       "c, r2" -> "f, r1"
+
+       "d, r1" -> "e, r2"
+
+       "e, r2" -> "f, r1"
+       }
+       #+end_src
+       
+  - What happens if can't keep removing nodes? (e.g. ~k = 2~)
+    - proceed as normal, spill with a very connected nodes when you can't
+    - 

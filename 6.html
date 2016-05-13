@@ -3,10 +3,10 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-05-06 Fri 15:54 -->
+<!-- 2016-05-12 Thu 22:09 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="viewport" content="width=device-width, initial-scale=1" />
-<title>Compilation for Java</title>
+<title></title>
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="John Bender" />
 <style type="text/css">
@@ -146,7 +146,6 @@ for the JavaScript code in this tag.
 </head>
 <body>
 <div id="content">
-<h1 class="title">Compilation for Java</h1>
 
 <div id="outline-container-orgheadline1" class="outline-2">
 <h2 id="orgheadline1"><span class="section-number-2">1</span> Java ~&gt; Vapor</h2>
@@ -178,22 +177,22 @@ e.g.
 </p>
 <div class="org-src-container">
 
-<pre class="src src-java"><span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #3a81c3;">{</span>
-  <span style="color: #ba2f59; font-weight: bold;">int</span> <span style="color: #715ab1;">foo</span>;       
-  <span style="color: #ba2f59; font-weight: bold;">int</span> <span style="color: #715ab1;">bar</span>;
-  <span style="color: #ba2f59; font-weight: bold;">int</span> <span style="color: #715ab1;">baz</span>;
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span>
+  <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">foo</span>;       
+  <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">bar</span>;
+  <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #af5fd7;">baz</span>;
 
-  <span style="color: #ba2f59; font-weight: bold;">int</span> <span style="color: #6c3163; font-weight: bold;">m</span><span style="color: #6c3163;">(){</span>      
-    <span style="color: #3a81c3; font-weight: bold;">return</span> foo;  <span style="color: #2aa1ae; background-color: #ecf3ec;">// </span><span style="color: #2aa1ae; background-color: #ecf3ec;">support field refs</span>
-  <span style="color: #6c3163;">}</span>
-<span style="color: #3a81c3;">}</span>
+  <span style="color: #af005f; font-weight: bold;">int</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span>      
+    <span style="color: #268bd2; font-weight: bold;">return</span> foo;  <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">support field refs</span>
+  <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
 
-<span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">Main</span> <span style="color: #3a81c3;">{</span> 
-  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">main</span><span style="color: #6c3163;">(</span> ... <span style="color: #6c3163;">){</span> 
-    <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #715ab1;">a</span> = <span style="color: #3a81c3; font-weight: bold;">new</span> <span style="color: #ba2f59; font-weight: bold;">A</span><span style="color: #2d9574;">()</span>; 
-    a.m<span style="color: #2d9574;">()</span>;       <span style="color: #2aa1ae; background-color: #ecf3ec;">// </span><span style="color: #2aa1ae; background-color: #ecf3ec;">support method calls</span>
-  <span style="color: #6c3163;">}</span>
-<span style="color: #3a81c3;">}</span>
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">Main</span> <span style="color: #268bd2;">{</span> 
+  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">main</span><span style="color: #8700af;">(</span> ... <span style="color: #8700af;">){</span> 
+    <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #af5fd7;">a</span> = <span style="color: #268bd2; font-weight: bold;">new</span> <span style="color: #af005f; font-weight: bold;">A</span><span style="color: #2aa198;">()</span>; 
+    a.m<span style="color: #2aa198;">()</span>;       <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">support method calls</span>
+  <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
 </pre>
 </div></li>
 </ul></li>
@@ -242,20 +241,20 @@ e.g.
 </p>
 <div class="org-src-container">
 
-<pre class="src src-java"><span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #3a81c3;">{</span> 
-  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">m</span><span style="color: #6c3163;">(){</span> ... <span style="color: #6c3163;">}</span> 
-<span style="color: #3a81c3;">}</span>
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> 
+  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> 
+<span style="color: #268bd2;">}</span>
 
-<span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">B</span> <span style="color: #3a81c3; font-weight: bold;">extends</span> <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #3a81c3;">{</span> 
-  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">m</span><span style="color: #6c3163;">(){</span> ... <span style="color: #6c3163;">}</span> 
-<span style="color: #3a81c3;">}</span>
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">B</span> <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> 
+  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> 
+<span style="color: #268bd2;">}</span>
 
-<span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">P</span> <span style="color: #3a81c3;">{</span> 
-  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">n</span><span style="color: #6c3163;">(</span><span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #715ab1;">aOrB</span><span style="color: #6c3163;">){</span> 
-    <span style="color: #2aa1ae; background-color: #ecf3ec;">// </span><span style="color: #2aa1ae; background-color: #ecf3ec;">which implementation of m?</span>
-    aOrB.m<span style="color: #2d9574;">()</span>; 
-  <span style="color: #6c3163;">}</span> 
-<span style="color: #3a81c3;">}</span>
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">P</span> <span style="color: #268bd2;">{</span> 
+  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">n</span><span style="color: #8700af;">(</span><span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #af5fd7;">aOrB</span><span style="color: #8700af;">){</span> 
+    <span style="color: #008787; background-color: #ffffff;">// </span><span style="color: #008787; background-color: #ffffff;">which implementation of m?</span>
+    aOrB.m<span style="color: #2aa198;">()</span>; 
+  <span style="color: #8700af;">}</span> 
+<span style="color: #268bd2;">}</span>
 </pre>
 </div>
 
@@ -280,12 +279,12 @@ e.g.
 </p>
 <div class="org-src-container">
 
-<pre class="src src-java"><span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #3a81c3;">{</span> 
-  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">m</span><span style="color: #6c3163;">(){</span> ... <span style="color: #6c3163;">}</span> 
-  <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">l</span><span style="color: #6c3163;">(){</span> ... <span style="color: #6c3163;">}</span>
-<span style="color: #3a81c3;">}</span>
+<pre class="src src-java"><span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> 
+  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> 
+  <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">l</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span>
+<span style="color: #268bd2;">}</span>
 
-<span style="color: #3a81c3; font-weight: bold;">class</span> <span style="color: #ba2f59; font-weight: bold;">B</span> <span style="color: #3a81c3; font-weight: bold;">extends</span> <span style="color: #ba2f59; font-weight: bold;">A</span> <span style="color: #3a81c3;">{</span> <span style="color: #ba2f59; font-weight: bold;">void</span> <span style="color: #6c3163; font-weight: bold;">m</span><span style="color: #6c3163;">(){</span> ... <span style="color: #6c3163;">}</span> <span style="color: #3a81c3;">}</span>
+<span style="color: #268bd2; font-weight: bold;">class</span> <span style="color: #af005f; font-weight: bold;">B</span> <span style="color: #268bd2; font-weight: bold;">extends</span> <span style="color: #af005f; font-weight: bold;">A</span> <span style="color: #268bd2;">{</span> <span style="color: #af005f; font-weight: bold;">void</span> <span style="color: #8700af; font-weight: bold;">m</span><span style="color: #8700af;">(){</span> ... <span style="color: #8700af;">}</span> <span style="color: #268bd2;">}</span>
 </pre>
 </div>
 
@@ -549,7 +548,7 @@ stmt[while (e) s , i, layots, vmts] -&gt;
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: John Bender</p>
-<p class="date">Created: 2016-05-06 Fri 15:54</p>
+<p class="date">Created: 2016-05-12 Thu 22:09</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
