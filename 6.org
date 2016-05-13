@@ -2,7 +2,7 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./assets/style.css" />
 #+HTML_HEAD: <script src="./assets/jquery-1.7.1.js"></script>
 
-#+TITLE: Compilation for Java
+#+TITLE: 
 #+OPTIONS: toc:nil
 
 * Java ~> Vapor

@@ -1,0 +1,201 @@
+#+HTML_HEAD: <link href="./assets/bootstrap.min.css" rel="stylesheet">
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+#+HTML_HEAD: <script src="./assets/jquery-1.7.1.js"></script>
+
+#+TITLE: Liveness Analysis, Linear Scan
+#+OPTIONS: toc:nil
+
+* Liveness Analysis
+- Optimization
+- Registers are faster than main memory
+- Registers small finite set, locals larger finite sets
+- Mapping from locals
+
+- The Golden Rule
+  
+  #+begin_quote
+  A variable ~v~ is live on edge ~e~ if there is a directed path from ~e~ to a use of ~v~ that does
+  not pass through any assignment to ~v~
+  #+end_quote
+
+- example
+  
+  - legend: 
+    - live in and out: ~|~ 
+    - live in ~˙~
+    - live out ~.~
+
+  #+begin_example
+                               i         
+  L1: i = 1                    .
+  L2: y = i + 2                |
+  L3: if y > 10 then goto L9   |
+  L4: b = y + 3                |
+  L5: if i > 20 goto L7        |
+  L6: i = i + 1                |
+  L7: b = b + i                |
+  L8: goto L2                  | <- why is this live out?
+  L9: y = b + 4                
+  L10: return y
+  #+end_example
+
+  #+begin_example
+                               i  y  
+  L1: i = 1                    .  
+  L2: y = i + 2                |  .
+  L3: if y > 10 then goto L9   |  |
+  L4: b = y + 3                |  ˙ <- why? What about L8?
+  L5: if i > 20 goto L7        |   
+  L6: i = i + 1                |  
+  L7: b = b + i                | 
+  L8: goto L2                  |
+  L9: y = b + 4                   . <- why?
+  L10: return y                   ˙ <- why?
+  #+end_example
+
+  #+begin_example
+                               i  y  b
+  L1: i = 1                    .     | <- what?
+  L2: y = i + 2                |  .  | <- why?
+  L3: if y > 10 then goto L9   |  |  | <- when? how?
+  L4: b = y + 3                |  |  . <- why isn't b live-in?
+  L5: if i > 20 goto L7        |     |
+  L6: i = i + 1                |     |
+  L7: b = b + i                |     |
+  L8: goto L2                  |     |
+  L9: y = b + 4                   .  ˙
+  L10: return y                   ˙
+  #+end_example
+
+- Exam questions (F12) example from above,
+  - which variables are live along edges into L1
+    - ~b~! ~b~ can be read at L9 without an assignment!
+
+* Linear Scan
+
+- Question from piazza 
+  In the paper's model is ~d~ live at node 4? (Note, there is a critical
+  difference between live at the nodes and live on an edge)
+
+- example
+  #+begin_example
+                    a  b  c  d  e  f
+
+  a = 1             .     
+  b = 2             |  .  
+  c = a + b         |  ˙  .
+  d = a + c         ˙     |  .
+  e = c + d               ˙  |  .
+  f = d + 3                  ˙  |  .
+  b = e + 4            .        |  |
+  c = b + e            |  .     ˙  |
+  f = b + f            |  |        |
+  b = c + f            |  ˙        ˙
+  return b + 5         ˙
+  #+end_example
+
+  Extend the live ranges:
+
+  #+begin_example
+                    a  b  c  d  e  f
+
+  a = 1             .     
+  b = 2             |  .  
+  c = a + b         |  |  .
+  d = a + c         ˙  |  |  .
+  e = c + d            |  |  |  .
+  f = d + 3            |  |  ˙  |  .
+  b = e + 4            |  |     |  |
+  c = b + e            |  |     ˙  |
+  f = b + f            |  |        |
+  b = c + f            |  ˙        ˙
+  return b + 5         ˙
+  #+end_example
+
+  iterations of linear scan for two registers, ~R = {r1, r2}~ with the active
+  sequence ~A = <>~ and the mapping of variables ~M = {}~
+  
+  1. live interval for ~a~
+     - expire old intervals does nothing
+     - ~|A| < |R|~ 
+     - ~M = {a -> r1}~
+     - ~A = <a>~
+    
+  2. live interval for ~b~
+     - expire old intervals does nothing
+     - ~|A| < |R|~ 
+     - ~M = {a -> r1, b -> r2}~
+     - ~A = <a, b>~
+
+  3. live interval for ~c~
+     - expire old intervals does nothing
+     - ~|A| = |R|~ 
+     - spill chooses last interval ~b~ 
+     - ~b~'s endpoint is further than ~c~'s
+     - ~b~ spills!
+     - remove ~b~ from active, ~A = <a, c>~
+     - ~c~ takes the register
+     - ~M = {a -> r1, c -> r2}~
+     - ~A = <a, c>~
+
+  4. live interval for ~d~
+     - expire old interval removes ~a~ from ~A~
+     - ~|A| < |R|~
+     - ~M = {d -> r1, c -> r2}~
+       - Why ~r1~?
+     - ~A = <c, d>~
+
+  5. live interval for ~e~
+     - expire old intervals does nothing
+     - spill chooses last interval ~c~ 
+     - ~c~'s endpoint is further than ~e~'s
+     - ~c~ spills!
+     - remove ~c~ from active, ~A = <d>~
+     - ~e~ takes the register
+     - ~M = {d -> r1, e -> r2}~
+     - ~A = <d, e>~
+
+  6. live interval for ~e~
+     - expire old interval removes ~d~ from ~A~, ~A = <e>~
+     - ~|A| < |R|~ 
+     - ~M = {e -> r2, f -> r1}~
+     - ~A = <e, f>~
+
+  #+begin_example
+                    a  b  c  d  e  f
+
+  r1a = 1           .     
+  b   = 2           |  .  
+  c   = r1a + b     |  |  .
+  r1d = r1a + c     ˙  |  |  .
+  r2e = c + r1d        |  |  |  .
+  r1f = r1d + 3        |  |  ˙  |  .
+  b   = r2e + 4        |  |     |  |
+  c   = b + r2e        |  |     ˙  |
+  r1f = b + r1f        |  |        |
+  b   = c + r1f        |  ˙        ˙
+  return b + 5         ˙
+  #+end_example
+
+- What is the pathological case for linear scan?
+
+  #+begin_example
+               a  b  c  d
+
+  a = 1        .
+  b = a + 1    |  .
+  c = b + 1    |  |  .
+  d = c + 1    |  |  |  .
+  a = d + 1    |  |  |  |
+  b = a + 1    ˙  |  |  |
+  c = b + 1       ˙  |  |
+  d = c + 1          ˙  |
+  return d              ˙
+  #+end_example
+
+  - How many registers are actually required? (1)
+  - How many variables will spill? (4 - #regs)
+
+* Graph coloring
+
+ 
