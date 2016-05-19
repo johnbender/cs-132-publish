@@ -1,0 +1,139 @@
+#+HTML_HEAD: <link href="./assets/bootstrap.min.css" rel="stylesheet">
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+#+HTML_HEAD: <script src="./assets/jquery-1.7.1.js"></script>
+#+TITLE: Vapor-M, Mips, registers/stack
+#+OPTIONS: toc:nil
+
+* Vapor ~> Vapor-M
+- What does Vapor-M lack?
+  - no params
+    - ~in~
+      - ~$a*~ registers and ~in[]~
+    - ~out~
+      - ~$a*~ registers and ~out[]~
+    - ~func id(id1 ... idf)~ -> ~func id [in f, out m, local n]~
+      - How do we determine ~m~?
+      - How do we determine ~n~?
+  - no local variables
+    - registers
+      - keep caller values from getting trashed/lost (~$s0...$s7~)
+    - ~local~
+      - space for saving registers, space for spilling
+  - no return
+    - convention
+      - store in ~$v0~ before ~ret~ in callee
+      - expect return value in ~$v0~ after call in caller
+- Factorial example:
+
+  #+begin_src vapor
+  const vmt_Fac
+    :Fac.ComputeFac
+
+  func Main [in 0, out 0, local 0]
+    $t0 = HeapAllocZ(4)
+    [$t0] = :vmt_Fac
+    if $t0 goto :null1
+    Error("null pointer")
+  null1:
+    $t1 = [$t0]
+    $t1 = [$t1]
+    $a0 = $t0
+    $a1 = 10
+    call $t1
+    $t1 = $v0
+    PrintIntS($t1)
+    ret
+
+  func Fac.ComputeFac [in 0, out 0, local 1]
+    local[0] = $s0   # Why?
+    $t0 = $a0        # Why?
+    $s0 = $a1        # why?
+    $t1 = LtS($s0 1)
+    if0 $t1 goto :if1_else
+    $t1 = 1
+    goto :if1_end
+  if1_else:
+    $t2 = [$t0]
+    $t2 = [$t2]
+    $t3 = Sub($s0 1)
+    $a0 = $t0
+    $a1 = $t3
+    call $t2
+    $t3 = $v0
+    $t1 = MulS($s0 $t3)
+  if1_end:
+    $v0 = $t1
+    $s0 = local[0]   # why?
+    ret
+  #+end_src
+
+  - ~Fac.ComputeFac~
+
+    #+begin_src vapor
+    func Fac.ComputeFac [in 0, out 0, local 1]
+      local[0] = $s0   # Why is $s0 saved?
+      $t0 = $a0        # What is $a0 from caller?
+      $s0 = $a1        # What is $a1 from caller?
+      ...
+      $v0 = $t1        # What is $v0?
+      $s0 = local[0]   # Why are we pulling local[0]? What about $t0?
+      ret
+    #+end_src
+
+
+- Vapor AST
+  - Why no visitors?
+  - parser example
+    - [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser.html][code]]
+  - ~VaporProgram~
+    - [[ http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser/vapor-parser-javadoc/cs132/vapor/ast/VaporProgram.html][docs]]
+    - ~DataSegments~      
+      - e.g. VMTs
+    - ~Functions~
+  - ~VDataSegment~
+    - [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser/vapor-parser-javadoc/cs132/vapor/ast/VDataSegment.html][docs]]
+    - ~values~
+  - ~VFunction~
+    - [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser/vapor-parser-javadoc/cs132/vapor/ast/VFunction.html][docs]]
+    - ~body~
+      - list of ~VInstr~
+    - ~labels~
+      - When might this be used?
+      - ~VCodeLabel~ has an ~instrIndex~ for the parent function's ~body~
+    - ~params~
+      - When is this used?
+    - ~vars~ 
+      - When might this be used?
+    - ~stack~
+      - not for vapor, from [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser.html][parser example]]:
+
+        #+begin_quote 
+        A Vapor program will never contain the following AST nodes:
+        VVarRef.Register, VMemRef.Stack.
+        #+end_quote
+
+  - ~VInstr~
+    - only visitor
+
+
+* Vapor-M ~> Mips
+- Vapor-M AST
+  - ~VFunction~
+    - [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser/vapor-parser-javadoc/cs132/vapor/ast/VFunction.html][docs]]
+    - ~body~
+      - list of instructions
+    - ~labels~
+      - Why?
+    - ~params~
+      - not for Vapor-M
+
+        #+begin_quote 
+        A Vapor-M program will never contain the following AST node:
+        VVarRef.Local.
+        #+end_quote
+      - 
+    - ~stack~
+
+
+- no ~in~, ~out~, ~local~
+- 
