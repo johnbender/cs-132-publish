@@ -1,7 +1,7 @@
 (function($){
   $(function(){
     // hideables
-    $("pre.src-javacc, pre.src-java").each(function(i, h){
+    $("pre.src-javacc, pre.src-java, pre.src-vapor, pre.src-vaporm, pre.src-python").each(function(i, h){
       var $h = $(h);
 
       var type = $h.attr("class").replace(/.*src\-([a-z]+).*/, "$1");

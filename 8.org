@@ -1,6 +1,7 @@
 #+HTML_HEAD: <link href="./assets/bootstrap.min.css" rel="stylesheet">
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./assets/style.css" />
 #+HTML_HEAD: <script src="./assets/jquery-1.7.1.js"></script>
+#+HTML_HEAD: <script src="./assets/site.js"></script>
 #+TITLE: Vapor-M, Mips, registers/stack
 #+OPTIONS: toc:nil
 
@@ -10,38 +11,56 @@
     - ~out~
       - ~$a*~ registers and ~out[]~
       - e.g. MoreThan4 ~Main~
-        #+begin_src vaporm
-        func Main [in 0, out 3, local 0]
-          ...
-          $a0 = $t0
-          $a1 = 1
-          $a2 = 2
-          $a3 = 3
-          out[0] = 4
-          out[1] = 5
-          out[2] = 6
-          call $t1
-          $t1 = $v0
-          PrintIntS($t1)
-          ret
-        #+end_src
+        - vapor 
+          #+begin_src vapor
+          func Main()
+            ...
+            t.2 = call t.1(t.0 1 2 3 4 5 6)
+            ...
+          #+end_src 
+        - vaporm
+          #+begin_src vapor
+          func Main [in 0, out 3, local 0]
+            ...
+            $a0 = $t0
+            $a1 = 1
+            $a2 = 2
+            $a3 = 3
+            out[0] = 4
+            out[1] = 5
+            out[2] = 6
+            call $t1
+            $t1 = $v0
+            ...
+          #+end_src
     - ~in~
       - ~$a*~ registers and ~in[]~
       - e.g. [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/MoreThan4.vaporm][MoreThan4]] ~Start~
-        #+begin_src vaporm
-        func MT4.Start [in 3, out 3, local 0]
-          $t0 = $a0
-          $t1 = $a1
-          $t2 = $a2
-          $t3 = $a3
-          $t4 = in[0]
-          $t5 = in[1]
-          $t6 = in[2]
-          ... 
-        #+end_src
+        - vapor
+          #+begin_src vapor
+          func MT4.Start(this p1 p2 p3 p4 p5 p6)
+            ... 
+          #+end_src
+        - vaporm
+          #+begin_src vaporm
+          func MT4.Start [in 3, out 3, local 0]
+            $t0 = $a0
+            $t1 = $a1
+            $t2 = $a2
+            $t3 = $a3
+            $t4 = in[0]
+            $t5 = in[1]
+            $t6 = in[2]
+            ... 
+          #+end_src
     - Every ~func~'s ~in~ is some other ~func~'s ~out~
-
+      - e.g. MoreThan4
       #+begin_example
+      $a0 = $t0
+      $a1 = 1
+      $a2 = 2
+      $a3 = 3
+
       [ local ] . [ out ] . [ local ] . [ out ]
       | ------------------|   
           Main's "stack" 
@@ -51,7 +70,7 @@
     - ~func id(id1 ... idf)~ -> ~func id [in c1, out c2, local c3]~
       - How do we determine ~c1~?
         - Are you going to use registers?
-        - ~#args - #registers~
+        - ~#params - #registers~
       - How do we determine ~c2~?
         - e.g., assuming no registers are used for args
           #+begin_src vaporm
@@ -71,9 +90,6 @@
 
           #+begin_src vaporm
           funct Baz [in 3, out 0, local 3]
-            local[0] = $s0
-            local[1] = $s1
-            local[2] = $s2
             $t0 = in[0]
             $t1 = in[1]
             $t1 = in[2]
@@ -89,6 +105,8 @@
             ... 
           #+end_src
       - How do we determine ~c3~?
+        - ~#spill + #callee-save + #caller-save~
+          - see below
         - e.g. [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/Factorial.vaporm][Factorial]] ~Fac.ComputeFac~
           #+begin_src vaporm
           func Fac.ComputeFac [in 0, out 0, local 1]
@@ -98,11 +116,10 @@
   - local variables
     - registers
       - conventions 
-        - ~$t0...$t8~ are caller save
-        - ~$s0...$s7~ are callee save
+        - ~$t0...$t8~ are caller save/caller's responsibility 
+        - ~$s0...$s7~ are callee save/callee's responsibility
         - ~$v0, $v1~ temporary and return values
-      - must keep caller values from getting trashed/lost (~$s0...$s7~)
-      - compile Vapor functions without consideration for callers/callees
+      - we must keep required register values preserved across calls
       - e.g. [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/Factorial.vaporm][Factoria]]l  ~Fac.ComputeFac~
         #+begin_src vaporm
         func Fac.ComputeFac [in 0, out 0, local 1]
@@ -116,19 +133,79 @@
         #+end_src
       - temporaries
         - always possible to use ~$v0~, ~$v1~
-
           #+begin_src vaporm
-          $v0 = Add($v0 + $v1)
+          $v0 = $v0 + $v1
           #+end_src
     - ~local~
       - space for saving callee saved/caller saved registers
-      - space for spilling 
+      - space for spilling
   - return value
     - convention
       - store in ~$v0~ before ~ret~ in callee
       - expect return value in ~$v0~ after call in caller
+  - cheat codes
+    - ~in~ / ~out~, without ~$a*~
+      - e.g. [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/MoreThan4.vaporm][MoreThan4]] ~Start~
+        - ~out~
+          #+begin_src vapor
+          func Main [in 0, out 3, local 0]
+            ...
+            out[0] = $t0
+            out[1] = 1
+            out[2] = 2
+            out[3] = 3
+            out[4] = 4
+            out[5] = 5
+            out[6] = 6
+            call $t1
+            $t1 = $v0
+            ...
+          #+end_src
+        - ~in~
+          #+begin_src vaporm
+          func MT4.Start [in 7, out 7, local 0]
+            $t0 = in[0]
+            $t1 = in[1]
+            $t2 = in[2]
+            $t3 = in[3]
+            $t4 = in[4]
+            $t5 = in[5]
+            $t6 = in[6]
+            ... 
+          #+end_src
+    - ~local~ for everything
+      - e.g. [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/MoreThan4.vaporm][MoreThan4]] ~Start~
+        - vaporm
+          #+begin_src vaporm
+          func MT4.Start [in 3, out 3, local 7]
+            # assuming you are not using the in/out cheat codes
+            local[0] = $a0
+            local[1] = $a1
+            local[2] = $a2
+            local[3] = $a3
+            local[4] = in[0]
+            local[5] = in[1]
+            local[6] = in[2]
+            ... 
+          #+end_src
 - Vapor AST
   - Visitors only at the intstruction level? What's different?
+    #+begin_src python
+    for func in prog.functions:
+      local_regs = reg_alloc(func)
+      
+      sig = func_sig(func)
+
+      code.append(func_sig)
+      
+      for instr in func.body:
+        compiled = instr.accept(compile_visitor, local_regs) 
+        code.append(compiled)
+        ...
+
+      ...
+    #+end_src
+
   - parser example
     - [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser.html][code]]
   - ~VaporProgram~
@@ -152,12 +229,35 @@
       - When might this be used?
     - ~stack~
       - not for vapor, from [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser.html][parser example]]:
+
         #+begin_quote 
         A Vapor program will never contain the following AST nodes:
         VVarRef.Register, VMemRef.Stack.
         #+end_quote
   - ~VInstr~
     - only visitor
+
+  - e.g. use ~$t*~ registers where appropriate 
+    
+    If we follow the MIPS conventions everywhere we can safely assume
+    that a parent caller will do the work to restore the ~$t*~ registers
+    so leaf calls need not worry about saving registers onto the stack 
+    if they use ~$t*~ registers.
+    
+    #+begin_src python
+    for instr in func.body:
+      result = instr.accept(is_call_visitor)
+      break if result
+
+    if not result:
+      leaf_call = true
+    
+    ...  
+    
+    if leaf_call:
+      # use $t* registers
+      # local size for save is 0
+    #+end_src
 
 * Vapor-M ~> MIPS
 - What does MIPS lack?
@@ -223,10 +323,25 @@
       sw $ra -4($fp)    # store the $ra so we know where to jump back to after this call
       ... 
     #+end_src
+
 - postamble
+  - e.g. ~Factorial~
+    
+    #+begin_src mips
+    Fac.ComputeFac:
+      ...
+      move $v0 $t1      # set up the return value
+      lw $s0 0($sp)     # restore the $s0 register used in this call
+      lw $ra -4($fp)    # load the $ra to jump back to the caller's next instr
+      lw $fp -8($fp)    # reset the $fp to its old position
+      addu $sp $sp 12   # reset the $sp to its old position
+      jr $ra
+    #+end_src
+
 - parameter access
   - recall that the new ~$fp~ was the old ~$sp~ which was pointing at the bottom
     of the caller's args
+  - so we want to go up from the ~$fp~ to get at the callers ~out~
   - ~in[0] -> ~0$(fp)~ 
   - ~in[1] -> ~4$(fp)~ 
   - ~in[2] -> ~8$(fp)~ 

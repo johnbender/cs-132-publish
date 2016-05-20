@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-05-19 Thu 16:45 -->
+<!-- 2016-05-20 Fri 09:19 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="viewport" content="width=device-width, initial-scale=1" />
 <title>Vapor-M, Mips, registers/stack</title>
@@ -97,6 +97,7 @@
 <link href="./assets/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="./assets/style.css" />
 <script src="./assets/jquery-1.7.1.js"></script>
+<script src="./assets/site.js"></script>
 <script type="text/javascript">
 /*
 @licstart  The following is the entire license notice for the
@@ -154,17 +155,30 @@ for the JavaScript code in this tag.
 <ul class="org-ul">
 <li>What does Vapor-M lack?
 <ul class="org-ul">
-<li>no params
+<li>params
 <ul class="org-ul">
 <li><code>out</code>
 <ul class="org-ul">
 <li><code>$a*</code> registers and <code>out[]</code></li>
+<li>e.g. MoreThan4 <code>Main</code>
+<ul class="org-ul">
 <li><p>
-e.g. MoreThan4 <code>Main</code>
+vapor 
 </p>
 <div class="org-src-container">
 
-<pre class="src src-vaporm">func Main [in 0, out 3, local 0]
+<pre class="src src-vapor">func Main()
+  ...
+  t.2 = call t.1(t.0 1 2 3 4 5 6)
+  ...
+</pre>
+</div></li>
+<li><p>
+vaporm
+</p>
+<div class="org-src-container">
+
+<pre class="src src-vapor">func Main [in 0, out 3, local 0]
   ...
   $a0 = $t0
   $a1 = 1
@@ -175,16 +189,27 @@ e.g. MoreThan4 <code>Main</code>
   out[2] = 6
   call $t1
   $t1 = $v0
-  PrintIntS($t1)
-  ret
+  ...
 </pre>
 </div></li>
+</ul></li>
 </ul></li>
 <li><code>in</code>
 <ul class="org-ul">
 <li><code>$a*</code> registers and <code>in[]</code></li>
+<li>e.g. <a href="http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/MoreThan4.vaporm">MoreThan4</a> <code>Start</code>
+<ul class="org-ul">
 <li><p>
-e.g. <a href="http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/MoreThan4.vaporm">MoreThan4</a> <code>Start</code>
+vapor
+</p>
+<div class="org-src-container">
+
+<pre class="src src-vapor">func MT4.Start(this p1 p2 p3 p4 p5 p6)
+  ...
+</pre>
+</div></li>
+<li><p>
+vaporm
 </p>
 <div class="org-src-container">
 
@@ -200,11 +225,19 @@ e.g. <a href="http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examp
 </pre>
 </div></li>
 </ul></li>
+</ul></li>
 <li><p>
 Every <code>func</code>'s <code>in</code> is some other <code>func</code>'s <code>out</code>
 </p>
-
+<ul class="org-ul">
+<li>e.g. MoreThan4</li>
+</ul>
 <pre class="example">
+$a0 = $t0
+$a1 = 1
+$a2 = 2
+$a3 = 3
+
 [ local ] . [ out ] . [ local ] . [ out ]
 | ------------------|   
     Main's "stack" 
@@ -213,7 +246,11 @@ Every <code>func</code>'s <code>in</code> is some other <code>func</code>'s <cod
 </pre></li>
 <li><code>func id(id1 ... idf)</code> -&gt; <code>func id [in c1, out c2, local c3]</code>
 <ul class="org-ul">
-<li>How do we determine <code>c1</code>?</li>
+<li>How do we determine <code>c1</code>?
+<ul class="org-ul">
+<li>Are you going to use registers?</li>
+<li><code>#params - #registers</code></li>
+</ul></li>
 <li>How do we determine <code>c2</code>?
 <ul class="org-ul">
 <li><p>
@@ -234,7 +271,6 @@ e.g., assuming no registers are used for args
   ...
 </pre>
 </div></li>
-
 <li><p>
 What happens in the case of <code>Bar</code>?
 </p>
@@ -242,16 +278,12 @@ What happens in the case of <code>Bar</code>?
 <div class="org-src-container">
 
 <pre class="src src-vaporm">funct Baz [in 3, out 0, local 3]
-  local[0] = $s0
-  local[1] = $s1
-  local[2] = $s2
   $t0 = in[0]
   $t1 = in[1]
   $t1 = in[2]
   ...
 </pre>
 </div></li>
-
 <li><p>
 What happens in the case of <code>Baz</code>?
 </p>
@@ -266,9 +298,12 @@ funct Baz [in 2, out 0, local 2]
 </pre>
 </div></li>
 </ul></li>
-
 <li>How do we determine <code>c3</code>?
 <ul class="org-ul">
+<li><code>#spill + #callee-save + #caller-save</code>
+<ul class="org-ul">
+<li>see below</li>
+</ul></li>
 <li><p>
 e.g. <a href="http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/Factorial.vaporm">Factorial</a> <code>Fac.ComputeFac</code>
 </p>
@@ -282,17 +317,17 @@ e.g. <a href="http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examp
 </ul></li>
 </ul></li>
 </ul></li>
-<li>no local variables
+<li>local variables
 <ul class="org-ul">
 <li>registers
 <ul class="org-ul">
 <li>conventions 
 <ul class="org-ul">
-<li><code>$t0...$t8</code> are caller save</li>
-<li><code>$s0...$s7</code> are callee save</li>
+<li><code>$t0...$t8</code> are caller save/caller's responsibility</li>
+<li><code>$s0...$s7</code> are callee save/callee's responsibility</li>
 <li><code>$v0, $v1</code> temporary and return values</li>
 </ul></li>
-<li>must keep caller values from getting trashed/lost (<code>$s0...$s7</code>)</li>
+<li>we must keep required register values preserved across calls</li>
 <li><p>
 e.g. <a href="http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/Factorial.vaporm">Factoria</a>l  <code>Fac.ComputeFac</code>
 </p>
@@ -313,22 +348,20 @@ e.g. <a href="http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examp
 <li><p>
 always possible to use <code>$v0</code>, <code>$v1</code>
 </p>
-
 <div class="org-src-container">
 
-<pre class="src src-vaporm">$v0 = Add($v0 + $v1)
+<pre class="src src-vaporm">$v0 = $v0 + $v1
 </pre>
 </div></li>
 </ul></li>
 </ul></li>
-
 <li><code>local</code>
 <ul class="org-ul">
 <li>space for saving callee saved/caller saved registers</li>
 <li>space for spilling</li>
 </ul></li>
 </ul></li>
-<li>no return value
+<li>return value
 <ul class="org-ul">
 <li>convention
 <ul class="org-ul">
@@ -336,11 +369,97 @@ always possible to use <code>$v0</code>, <code>$v1</code>
 <li>expect return value in <code>$v0</code> after call in caller</li>
 </ul></li>
 </ul></li>
-</ul></li>
+<li>cheat codes
+<ul class="org-ul">
+<li><code>in</code> / <code>out</code>, without <code>$a*</code>
+<ul class="org-ul">
+<li>e.g. <a href="http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/MoreThan4.vaporm">MoreThan4</a> <code>Start</code>
+<ul class="org-ul">
+<li><p>
+<code>out</code>
+</p>
+<div class="org-src-container">
 
+<pre class="src src-vapor">func Main [in 0, out 3, local 0]
+  ...
+  out[0] = $t0
+  out[1] = 1
+  out[2] = 2
+  out[3] = 3
+  out[4] = 4
+  out[5] = 5
+  out[6] = 6
+  call $t1
+  $t1 = $v0
+  ...
+</pre>
+</div></li>
+<li><p>
+<code>in</code>
+</p>
+<div class="org-src-container">
+
+<pre class="src src-vaporm">func MT4.Start [in 7, out 7, local 0]
+  $t0 = in[0]
+  $t1 = in[1]
+  $t2 = in[2]
+  $t3 = in[3]
+  $t4 = in[4]
+  $t5 = in[5]
+  $t6 = in[6]
+  ...
+</pre>
+</div></li>
+</ul></li>
+</ul></li>
+<li><code>local</code> for everything
+<ul class="org-ul">
+<li>e.g. <a href="http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/MoreThan4.vaporm">MoreThan4</a> <code>Start</code>
+<ul class="org-ul">
+<li><p>
+vaporm
+</p>
+<div class="org-src-container">
+
+<pre class="src src-vaporm">func MT4.Start [in 3, out 3, local 7]
+  # assuming you are not using the in/out cheat codes
+  local[0] = $a0
+  local[1] = $a1
+  local[2] = $a2
+  local[3] = $a3
+  local[4] = in[0]
+  local[5] = in[1]
+  local[6] = in[2]
+  ...
+</pre>
+</div></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
 <li>Vapor AST
 <ul class="org-ul">
-<li>Why no visitors?</li>
+<li><p>
+Visitors only at the intstruction level? What's different?
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #268bd2; font-weight: bold;">for</span> func <span style="color: #268bd2; font-weight: bold;">in</span> prog.functions:
+  <span style="color: #af5fd7;">local_regs</span> = reg_alloc<span style="color: #268bd2;">(</span>func<span style="color: #268bd2;">)</span>
+
+  <span style="color: #af5fd7;">sig</span> = func_sig<span style="color: #268bd2;">(</span>func<span style="color: #268bd2;">)</span>
+
+  code.append<span style="color: #268bd2;">(</span>func_sig<span style="color: #268bd2;">)</span>
+
+  <span style="color: #268bd2; font-weight: bold;">for</span> instr <span style="color: #268bd2; font-weight: bold;">in</span> func.body:
+    <span style="color: #af5fd7;">compiled</span> = instr.accept<span style="color: #268bd2;">(</span>compile_visitor, local_regs<span style="color: #268bd2;">)</span> 
+    code.append<span style="color: #268bd2;">(</span>compiled<span style="color: #268bd2;">)</span>
+    ...
+
+  ...
+</pre>
+</div></li>
+
 <li>parser example
 <ul class="org-ul">
 <li><a href="http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser.html">code</a></li>
@@ -393,21 +512,173 @@ VVarRef.Register, VMemRef.Stack.
 </blockquote></li>
 </ul></li>
 </ul></li>
-
 <li><code>VInstr</code>
 <ul class="org-ul">
 <li>only visitor</li>
 </ul></li>
+
+<li><p>
+e.g. use <code>$t*</code> registers where appropriate 
+</p>
+
+<p>
+If we follow the MIPS conventions everywhere we can safely assume
+that a parent caller will do the work to restore the <code>$t*</code> registers
+so leaf calls need not worry about saving registers onto the stack 
+if they use <code>$t*</code> registers.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #268bd2; font-weight: bold;">for</span> instr <span style="color: #268bd2; font-weight: bold;">in</span> func.body:
+  <span style="color: #af5fd7;">result</span> = instr.accept<span style="color: #268bd2;">(</span>is_call_visitor<span style="color: #268bd2;">)</span>
+  <span style="color: #268bd2; font-weight: bold;">break</span> <span style="color: #268bd2; font-weight: bold;">if</span> result
+
+<span style="color: #268bd2; font-weight: bold;">if</span> <span style="color: #268bd2; font-weight: bold;">not</span> result:
+  <span style="color: #af5fd7;">leaf_call</span> = true
+
+...  
+
+<span style="color: #268bd2; font-weight: bold;">if</span> leaf_call:
+  <span style="color: #008787; background-color: #ffffff;"># </span><span style="color: #008787; background-color: #ffffff;">use $t* registers</span>
+  <span style="color: #008787; background-color: #ffffff;"># </span><span style="color: #008787; background-color: #ffffff;">local size for save is 0</span>
+</pre>
+</div></li>
 </ul></li>
 </ul>
 </div>
 </div>
 
-
 <div id="outline-container-orgheadline2" class="outline-2">
-<h2 id="orgheadline2"><span class="section-number-2">2</span> Vapor-M ~&gt; Mips</h2>
+<h2 id="orgheadline2"><span class="section-number-2">2</span> Vapor-M ~&gt; MIPS</h2>
 <div class="outline-text-2" id="text-2">
 <ul class="org-ul">
+<li>What does MIPS lack?
+<ul class="org-ul">
+<li>stack "helpers"
+<ul class="org-ul">
+<li>requires stack frame managment</li>
+<li>preamble, postamble</li>
+</ul></li>
+<li>helper functions
+<ul class="org-ul">
+<li>e.g. <code>PrintIntS</code></li>
+<li><code>syscal</code></li>
+<li>see program examples for replacements</li>
+</ul></li>
+</ul></li>
+<li>Stack frame management 
+<ul class="org-ul">
+<li>recall that everyone's <code>out</code> is someone else's <code>in</code></li>
+<li>recall that we have two pointers <code>$fp</code> and <code>$sp</code> that make up the bounds of
+our stack frame</li>
+<li>whenever a jump to a new function is made we have to do the following:
+<ol class="org-ol">
+<li>record where we are so we can get back
+<ul class="org-ul">
+<li>return address <code>$ra</code></li>
+<li>frame pointer value</li>
+</ul></li>
+<li>allocate new space on the stack
+<ul class="org-ul">
+<li>move the stack pointer</li>
+<li>enough space for all locals 
+<ul class="org-ul">
+<li>spill</li>
+<li>register save</li>
+</ul></li>
+<li>enough space for all outbound calls</li>
+</ul></li>
+</ol></li>
+<li><p>
+e.g. (as in sample programs)
+</p>
+<pre class="example">
+|           | &lt;- fp
+|           | prev fp 
+|           | callers return address (instr after jump)
+|           | ---
+     ...      for locals
+|           | ---
+     ...      for call params 
+|           | &lt;- sp
+</pre></li>
+</ul></li>
+<li>preamble
+<ul class="org-ul">
+<li><p>
+e.g. <code>Factorial</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-vaporm">func Fac.ComputeFac [in 0, out 0, local 1]
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-mips">Fac.ComputeFac:
+  sw $fp -8($sp)    # add the frame offset 
+  move $fp $sp      # move the $fp forward to caller's $sp
+  subu $sp $sp 12   # move the $sp forward enough for this call
+  sw $ra -4($fp)    # store the $ra so we know where to jump back to afte this call
+  ...
+</pre>
+</div></li>
+<li><p>
+e.g. <code>MoreThan4</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-vaporm">func MT4.Change [in 3, out 0, local 0]
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-mips">MT4.Start:
+  sw $fp -8($sp)    # add the frame offset
+  move $fp $sp      # move the fp forward to the caller's $sp
+  subu $sp $sp 20   # why 20? 4 x 3 out, 0 x 0 local, 4 $ra, 4 old $fp
+  sw $ra -4($fp)    # store the $ra so we know where to jump back to after this call
+  ...
+</pre>
+</div></li>
+</ul></li>
+
+<li>postamble
+<ul class="org-ul">
+<li><p>
+e.g. <code>Factorial</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-mips">Fac.ComputeFac:
+  ...
+  move $v0 $t1      # set up the return value
+  lw $s0 0($sp)     # restore the $s0 register used in this call
+  lw $ra -4($fp)    # load the $ra to jump back to the caller's next instr
+  lw $fp -8($fp)    # reset the $fp to its old position
+  addu $sp $sp 12   # reset the $sp to its old position
+  jr $ra
+</pre>
+</div></li>
+</ul></li>
+
+<li>parameter access
+<ul class="org-ul">
+<li>recall that the new <code>$fp</code> was the old <code>$sp</code> which was pointing at the bottom
+of the caller's args</li>
+<li>so we want to go up from the <code>$fp</code> to get at the callers <code>out</code></li>
+<li><code>in[0] -&gt; ~0$(fp)</code></li>
+<li><code>in[1] -&gt; ~4$(fp)</code></li>
+<li><code>in[2] -&gt; ~8$(fp)</code></li>
+<li>current <code>$fp</code> was the caller's <code>$sp</code></li>
+</ul></li>
+<li>local access</li>
 <li>Vapor-M AST
 <ul class="org-ul">
 <li><code>VFunction</code>
@@ -433,24 +704,17 @@ A Vapor-M program will never contain the following AST node:
 VVarRef.Local.
 </p>
 </blockquote></li>
-<li></li>
 </ul></li>
 <li><code>stack</code></li>
 </ul></li>
 </ul></li>
-</ul>
-
-
-<ul class="org-ul">
-<li>no <code>in</code>, <code>out</code>, <code>local</code></li>
-<li></li>
 </ul>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: John Bender</p>
-<p class="date">Created: 2016-05-19 Thu 16:45</p>
+<p class="date">Created: 2016-05-20 Fri 09:19</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
