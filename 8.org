@@ -6,87 +6,133 @@
 
 * Vapor ~> Vapor-M
 - What does Vapor-M lack?
-  - no params
-    - ~in~
-      - ~$a*~ registers and ~in[]~
+  - params
     - ~out~
       - ~$a*~ registers and ~out[]~
-    - ~func id(id1 ... idf)~ -> ~func id [in f, out m, local n]~
-      - How do we determine ~m~?
-      - How do we determine ~n~?
-  - no local variables
+      - e.g. MoreThan4 ~Main~
+        #+begin_src vaporm
+        func Main [in 0, out 3, local 0]
+          ...
+          $a0 = $t0
+          $a1 = 1
+          $a2 = 2
+          $a3 = 3
+          out[0] = 4
+          out[1] = 5
+          out[2] = 6
+          call $t1
+          $t1 = $v0
+          PrintIntS($t1)
+          ret
+        #+end_src
+    - ~in~
+      - ~$a*~ registers and ~in[]~
+      - e.g. [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/MoreThan4.vaporm][MoreThan4]] ~Start~
+        #+begin_src vaporm
+        func MT4.Start [in 3, out 3, local 0]
+          $t0 = $a0
+          $t1 = $a1
+          $t2 = $a2
+          $t3 = $a3
+          $t4 = in[0]
+          $t5 = in[1]
+          $t6 = in[2]
+          ... 
+        #+end_src
+    - Every ~func~'s ~in~ is some other ~func~'s ~out~
+
+      #+begin_example
+      [ local ] . [ out ] . [ local ] . [ out ]
+      | ------------------|   
+          Main's "stack" 
+                |--"in"---|---------------------|
+                          Start's "stack"
+      #+end_example
+    - ~func id(id1 ... idf)~ -> ~func id [in c1, out c2, local c3]~
+      - How do we determine ~c1~?
+        - Are you going to use registers?
+        - ~#args - #registers~
+      - How do we determine ~c2~?
+        - e.g., assuming no registers are used for args
+          #+begin_src vaporm
+          funct Foo [in 0, out 3, local 0]
+            ...
+            out[0] = 1
+            out[1] = 2
+            out[2] = 3
+            call :Bar
+            ... 
+            out[0] = 2
+            out[1] = 1
+            call :Baz
+            ...
+          #+end_src
+        - What happens in the case of ~Bar~?
+
+          #+begin_src vaporm
+          funct Baz [in 3, out 0, local 3]
+            local[0] = $s0
+            local[1] = $s1
+            local[2] = $s2
+            $t0 = in[0]
+            $t1 = in[1]
+            $t1 = in[2]
+            ... 
+          #+end_src
+        - What happens in the case of ~Baz~?
+
+          #+begin_src vaporm
+          # How am I being lazy in this example?
+          funct Baz [in 2, out 0, local 2]
+            $t0 = in[0]
+            $t1 = in[1]
+            ... 
+          #+end_src
+      - How do we determine ~c3~?
+        - e.g. [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/Factorial.vaporm][Factorial]] ~Fac.ComputeFac~
+          #+begin_src vaporm
+          func Fac.ComputeFac [in 0, out 0, local 1]
+            local[0] = $s0 # func uses $s0 so we need to save one reg to local
+            ... 
+          #+end_src
+  - local variables
     - registers
-      - keep caller values from getting trashed/lost (~$s0...$s7~)
+      - conventions 
+        - ~$t0...$t8~ are caller save
+        - ~$s0...$s7~ are callee save
+        - ~$v0, $v1~ temporary and return values
+      - must keep caller values from getting trashed/lost (~$s0...$s7~)
+      - compile Vapor functions without consideration for callers/callees
+      - e.g. [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-m-examples/Factorial.vaporm][Factoria]]l  ~Fac.ComputeFac~
+        #+begin_src vaporm
+        func Fac.ComputeFac [in 0, out 0, local 1]
+          local[0] = $s0   # why is $s0 put in to local?
+          $t0 = $a0        # why isn't $t0 saved to local?
+          $s0 = $a1        # store args for use
+          ... 
+          $v0 = $t1        # what is the purpose of this store?
+          $s0 = local[0]   # why?
+          ret
+        #+end_src
+      - temporaries
+        - always possible to use ~$v0~, ~$v1~
+
+          #+begin_src vaporm
+          $v0 = Add($v0 + $v1)
+          #+end_src
     - ~local~
-      - space for saving registers, space for spilling
-  - no return
+      - space for saving callee saved/caller saved registers
+      - space for spilling 
+  - return value
     - convention
       - store in ~$v0~ before ~ret~ in callee
       - expect return value in ~$v0~ after call in caller
-- Factorial example:
-
-  #+begin_src vapor
-  const vmt_Fac
-    :Fac.ComputeFac
-
-  func Main [in 0, out 0, local 0]
-    $t0 = HeapAllocZ(4)
-    [$t0] = :vmt_Fac
-    if $t0 goto :null1
-    Error("null pointer")
-  null1:
-    $t1 = [$t0]
-    $t1 = [$t1]
-    $a0 = $t0
-    $a1 = 10
-    call $t1
-    $t1 = $v0
-    PrintIntS($t1)
-    ret
-
-  func Fac.ComputeFac [in 0, out 0, local 1]
-    local[0] = $s0   # Why?
-    $t0 = $a0        # Why?
-    $s0 = $a1        # why?
-    $t1 = LtS($s0 1)
-    if0 $t1 goto :if1_else
-    $t1 = 1
-    goto :if1_end
-  if1_else:
-    $t2 = [$t0]
-    $t2 = [$t2]
-    $t3 = Sub($s0 1)
-    $a0 = $t0
-    $a1 = $t3
-    call $t2
-    $t3 = $v0
-    $t1 = MulS($s0 $t3)
-  if1_end:
-    $v0 = $t1
-    $s0 = local[0]   # why?
-    ret
-  #+end_src
-
-  - ~Fac.ComputeFac~
-
-    #+begin_src vapor
-    func Fac.ComputeFac [in 0, out 0, local 1]
-      local[0] = $s0   # Why is $s0 saved?
-      $t0 = $a0        # What is $a0 from caller?
-      $s0 = $a1        # What is $a1 from caller?
-      ...
-      $v0 = $t1        # What is $v0?
-      $s0 = local[0]   # Why are we pulling local[0]? What about $t0?
-      ret
-    #+end_src
-
-
 - Vapor AST
-  - Why no visitors?
+  - Visitors only at the intstruction level? What's different?
   - parser example
     - [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser.html][code]]
   - ~VaporProgram~
-    - [[ http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser/vapor-parser-javadoc/cs132/vapor/ast/VaporProgram.html][docs]]
+    - [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser/vapor-parser-javadoc/cs132/vapor/ast/VaporProgram.html][docs]]
     - ~DataSegments~      
       - e.g. VMTs
     - ~Functions~
@@ -106,17 +152,86 @@
       - When might this be used?
     - ~stack~
       - not for vapor, from [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser.html][parser example]]:
-
         #+begin_quote 
         A Vapor program will never contain the following AST nodes:
         VVarRef.Register, VMemRef.Stack.
         #+end_quote
-
   - ~VInstr~
     - only visitor
 
+* Vapor-M ~> MIPS
+- What does MIPS lack?
+  - stack "helpers"
+    - requires stack frame managment 
+    - preamble, postamble
+  - helper functions
+    - e.g. ~PrintIntS~
+    - ~syscal~ 
+    - see program examples for replacements
+- Stack frame management 
+  - recall that everyone's ~out~ is someone else's ~in~
+  - recall that we have two pointers ~$fp~ and ~$sp~ that make up the bounds of
+    our stack frame
+  - whenever a jump to a new function is made we have to do the following:
+    1. record where we are so we can get back
+       - return address ~$ra~
+       - frame pointer value
+    2. allocate new space on the stack
+       - move the stack pointer
+       - enough space for all locals 
+         - spill 
+         - register save
+       - enough space for all outbound calls
+  - e.g. (as in sample programs)
+    #+begin_example
+    |           | <- fp
+    |           | prev fp 
+    |           | callers return address (instr after jump)
+    |           | ---
+         ...      for locals
+    |           | ---
+         ...      for call params 
+    |           | <- sp
 
-* Vapor-M ~> Mips
+    #+end_example
+- preamble
+  - e.g. ~Factorial~
+    
+    #+begin_src vaporm
+    func Fac.ComputeFac [in 0, out 0, local 1]
+    #+end_src 
+
+    #+begin_src mips
+    Fac.ComputeFac:
+      sw $fp -8($sp)    # add the frame offset 
+      move $fp $sp      # move the $fp forward to caller's $sp
+      subu $sp $sp 12   # move the $sp forward enough for this call
+      sw $ra -4($fp)    # store the $ra so we know where to jump back to afte this call
+      ...
+    #+end_src
+  - e.g. ~MoreThan4~
+    
+    #+begin_src vaporm
+    func MT4.Change [in 3, out 0, local 0]
+    #+end_src 
+
+    #+begin_src mips
+    MT4.Start:
+      sw $fp -8($sp)    # add the frame offset
+      move $fp $sp      # move the fp forward to the caller's $sp
+      subu $sp $sp 20   # why 20? 4 x 3 out, 0 x 0 local, 4 $ra, 4 old $fp
+      sw $ra -4($fp)    # store the $ra so we know where to jump back to after this call
+      ... 
+    #+end_src
+- postamble
+- parameter access
+  - recall that the new ~$fp~ was the old ~$sp~ which was pointing at the bottom
+    of the caller's args
+  - ~in[0] -> ~0$(fp)~ 
+  - ~in[1] -> ~4$(fp)~ 
+  - ~in[2] -> ~8$(fp)~ 
+  - current ~$fp~ was the caller's ~$sp~ 
+- local access   
 - Vapor-M AST
   - ~VFunction~
     - [[http://web.cs.ucla.edu/classes/spring11/cs132/kannan/vapor-parser/vapor-parser-javadoc/cs132/vapor/ast/VFunction.html][docs]]
@@ -131,9 +246,4 @@
         A Vapor-M program will never contain the following AST node:
         VVarRef.Local.
         #+end_quote
-      - 
     - ~stack~
-
-
-- no ~in~, ~out~, ~local~
-- 
